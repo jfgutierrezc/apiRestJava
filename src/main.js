@@ -1,35 +1,42 @@
+window.onload = function () {
+    var host = document.getElementById("form_host");
+    var macro = document.getElementById("form_macros");
+    var inventory = document.getElementById("form_inventory");
 
-//console.log("API URL = " + API_KEY)
-
-var url = "http://10.144.2.160/zabbix/api_jsonrpc.php";
-var bodyZ = {
-    "jsonrpc": "2.0",
-    "method": "item.get",
-    "params": {
-        "output": ["name","lastvalue","hostid","interfaceid","snmp_oid"],
-        "groupids":["76"],
-        "search": {
-            "name": ["tension"]
-        }
-    },
-    "auth": "d5aef56bf650141b17ee54a7f1e51bdc",
-    "id": 2
-};
+    host.style.display = "block";
+    macro.style.display = "none";
+    inventory.style.display = "none";
 
 
 
-async function getItemZabbix(){
-const res = await fetch(url, {
-    method: "POST", 
-    body: JSON.stringify(bodyZ),
-    headers: {
-        "Content-Type": "application/json",
-    },
-    });
-const data = await res.json();
-const result = data.result[5]['name'];
-console.log({data,result})
+}
+
+function mostrar(id) {
+    var host = document.getElementById("form_host");
+    var macro = document.getElementById("form_macros");
+    var inventory = document.getElementById("form_inventory");
+
+    if (id === "form_host") {
+        host.style.display = "block";
+        macro.style.display = "none";
+        inventory.style.display = "none";
+    } else if (id === "form_macros") {
+        macro.style.display = "block";
+        host.style.display = "none";
+        inventory.style.display = "none";
+    } else {
+        host.style.display = "none";
+        macro.style.display = "none";
+        inventory.style.display = "block";
+    }
+
 }
 
 
-getItemZabbix();
+function cargarDepartamento(){
+    fetch('src/Colombia.json')
+    .then(respuesta => respuesta.json())
+    .then(respuesta => console.log(respuesta))
+}
+
+cargarDepartamento();
