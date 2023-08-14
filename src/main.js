@@ -33,15 +33,16 @@ function mostrar(id) {
 }
 
 
-function cargarDepartamento() {
+/*function cargarDepartamento() {
     fetch('src/Colombia.json')
         .then(respuesta => respuesta.json())
         .then(respuesta => console.log(respuesta))
 }
 
 cargarDepartamento();
+*/
 
-
+//Funcion que valida el formato de ip sea correcto
 function validaIp(ip) {
 
     const object = document.getElementById(ip);
@@ -61,8 +62,12 @@ function validaIp(ip) {
     alert("Formato de IP incorrecto por favor verificar")
 }
 
+
+//Funcion que valida que solo se digite numeros y el punto
 function soloNumeros() {
     if ((event.keyCode != 46 ) && (event.keyCode < 48) || (event.keyCode > 57)  ) 
      event.returnValue = false;
    }
 
+
+   
