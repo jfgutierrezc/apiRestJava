@@ -32,15 +32,13 @@ function mostrar(id) {
 
 }
 
+// Select anidados para departamento y municipios
 
-/*function cargarDepartamento() {
-    fetch('src/Colombia.json')
-        .then(respuesta => respuesta.json())
-        .then(respuesta => console.log(respuesta))
-}
-
-cargarDepartamento();
-*/
+let info = '/data/colombia.json'
+fetch(info)
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.log(error))
 
 //Funcion que valida el formato de ip sea correcto
 function validaIp(ip) {
@@ -65,9 +63,8 @@ function validaIp(ip) {
 
 //Funcion que valida que solo se digite numeros y el punto
 function soloNumeros() {
-    if ((event.keyCode != 46 ) && (event.keyCode < 48) || (event.keyCode > 57)  ) 
-     event.returnValue = false;
-   }
+    if ((event.keyCode != 46) && (event.keyCode < 48) || (event.keyCode > 57))
+        event.returnValue = false;
+}
 
 
-   

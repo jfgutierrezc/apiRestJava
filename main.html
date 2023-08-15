@@ -26,11 +26,11 @@
                             </li>
                             <li class="mr-1">
                                 <a class="bg-zinc-700 focus:text-blue-400 inline-block py-2 px-4 focus:border-t focus:border-r focus:border-l rounded-t border-sky-300 text-white hover:text-blue-400 font-semibold"
-                                    href="#"  onclick="mostrar('form_macros')">Macros</a>
+                                    href="#" onclick="mostrar('form_macros')">Macros</a>
                             </li>
                             <li class="mr-1">
                                 <a class="bg-zinc-700 focus:text-blue-400 inline-block py-2 px-4 focus:border-t focus:border-r focus:border-l rounded-t border-sky-300 text-white hover:text-blue-400 font-semibold"
-                                    href="#"  onclick="mostrar('form_inventory')">Inventory</a>
+                                    href="#" onclick="mostrar('form_inventory')">Inventory</a>
                             </li>
                         </ul>
 
@@ -38,26 +38,27 @@
                             <!- Seccion Host ->
                                 <div class="mb-4 mt-6 ">
                                     <label class="block text-white text-sm font-bold mb-2" for="Interfaces">
-                                        NOMBRE INTERFACES
+                                        NOMBRE HOST
                                     </label>
                                     <input
                                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                        id="interface" type="text" placeholder="Interface">
+                                        id="interface" type="text" placeholder="Marquilla">
 
-                                        <label class="block text-white text-sm font-bold mb-2" for="Ip">
-                                            IP
-                                        </label>
-                                        <input
-                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                            id="ip" type="text" placeholder="xxx.xxx.xxx.xxx" onchange="validaIp('ip')" onkeypress="soloNumeros();" >
-    
-                                            <div class="mt-2 flex items-center justify-end gap-x-6">
-                                                <button
-                                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
-                                            </div>
+                                    <label class="block text-white text-sm font-bold mb-2" for="Ip">
+                                        IP
+                                    </label>
+                                    <input
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        id="ip" type="text" placeholder="xxx.xxx.xxx.xxx" onchange="validaIp('ip')"
+                                        onkeypress="soloNumeros();">
+
+                                    <div class="mt-2 flex items-center justify-end gap-x-6">
+                                        <button
+                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
+                                    </div>
                                 </div>
-                             
-                                
+
+
                         </form>
 
 
@@ -83,7 +84,7 @@
                                                     d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                                             </svg>
                                         </div>
-                                        
+
                                     </div>
                                     <div class="mt-2 flex items-center justify-end gap-x-6">
                                         <button
@@ -102,10 +103,8 @@
                                         </label>
                                         <select
                                             class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="departamento">
-                                            <option>Cundinamarca</option>
-                                            <option>Azteca2017</option>
-                                            <option>Public</option>
+                                            id="departamento" >
+                                            <option >Elige un departamento</option>
                                         </select>
                                         <div
                                             class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -123,10 +122,9 @@
                                         </label>
                                         <select
                                             class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="municipio">
-                                            <option>Bogota</option>
-                                            <option>Azteca2017</option>
-                                            <option>Public</option>
+                                            id="ciudad" onchange="cargarSelect1(this.value)" >
+                                            <option value='0'>Elige un municipio</option>
+                                            
                                         </select>
                                         <div
                                             class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -137,11 +135,11 @@
                                             </svg>
                                         </div>
                                     </div>
-                                    
-                                        <div class="mt-2 flex items-center justify-end gap-x-6">
-                                            <button
-                                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
-                                        </div>
+
+                                    <div class="mt-2 flex items-center justify-end gap-x-6">
+                                        <button
+                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
+                                    </div>
                                 </div>
 
 
