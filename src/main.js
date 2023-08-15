@@ -1,3 +1,18 @@
+const selectDepartamento = document.querySelector("#departamento")
+const selectMunicipio = document.querySelector("#municipio")
+let departamentos = []
+let data 
+let municipios = []
+let info = '/data/colombia.json'
+
+document.addEventListener("DOMContentLoaded", async () => {
+    data = await obetenerDatos()
+    departamentos = data.map((dato)=>dato.departamento)
+    llenarDepartamentos()
+    selectDepartamento.addEventListener("change", obtenerMunicipios)
+   
+} )
+
 window.onload = function () {
     const host = document.getElementById("form_host");
     const macro = document.getElementById("form_macros");
@@ -10,6 +25,48 @@ window.onload = function () {
 
 
 }
+
+// Select anidados para departamento y municipios
+
+
+async function obetenerDatos(){
+    const respuesta = await fetch(info)
+    const departamentos = await respuesta.json()
+    return departamentos
+}
+
+
+function llenarDepartamentos(){
+    departamentos.forEach((departamento)=>{
+        const departamentoOption = document.createElement("option")
+        departamento.value = departamento
+        departamentoOption.textContent = departamento
+        selectDepartamento.appendChild(departamentoOption)
+    })
+}
+
+function obtenerMunicipios(event){
+    const departamento = event.target.value
+    
+    municipios = data.filter((dato)=> dato.departamento === departamento)[0].ciudades
+    llenarMunicipios()
+    
+    }
+
+function llenarMunicipios(){
+    while(selectMunicipio.firstChild){
+        selectMunicipio.firstChild.remove()
+    }
+    
+    municipios.forEach((nombre)=>{
+        const municipioOption = document.createElement("option")
+        municipioOption.value = nombre
+        municipioOption.textContent =  nombre
+        selectMunicipio.appendChild(municipioOption)
+    })
+
+}
+
 
 function mostrar(id) {
     const host = document.getElementById("form_host");
@@ -31,14 +88,6 @@ function mostrar(id) {
     }
 
 }
-
-// Select anidados para departamento y municipios
-
-let info = '/data/colombia.json'
-fetch(info)
-    .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.log(error))
 
 //Funcion que valida el formato de ip sea correcto
 function validaIp(ip) {
@@ -66,5 +115,7 @@ function soloNumeros() {
     if ((event.keyCode != 46) && (event.keyCode < 48) || (event.keyCode > 57))
         event.returnValue = false;
 }
+
+
 
 
