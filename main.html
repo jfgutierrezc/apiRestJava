@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zabbix Clientes</title>
+    <title>Zabbix Clientes</title>    
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
+  </head>
 
 <body>
 
@@ -21,7 +21,7 @@
                     <!- Menu ->
                         <ul class="menu flex border-b border-sky-300">
                             <li class="-mb-px mb-2">
-                                <a class="bg-zinc-700 focus:text-blue-400 inline-block  focus:border-l focus:border-t border-sky-300 focus:border-r rounded-t py-2 px-4 text-white font-semibold"
+                                <a class="bg-zinc-700 focus:text-blue-400 inline-block  focus:border-l focus:border-t border-sky-300 focus:border-r rounded-t py-2 px-4 text-white font-semibold hover:text-blue-400"
                                     href="#" onclick="mostrar('form_host')" id="menu_host">Host</a>
                             </li>
                             <li class="mr-1">
@@ -65,12 +65,12 @@
                         <form id="form_macros">
                             <!- Seccion Macros ->
                                 <div class="mb-4 none">
-                                    <div class="relative  mt-6">
+                                    <div class="mt-6">
                                         <label class="block text-white text-sm font-bold mb-2" for="macros">
                                             SNMP_COMMUNITY
                                         </label>
                                         <select
-                                            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                            class="block text-sm w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                             id="macros">
                                             <option>Azt3c4</option>
                                             <option>Azteca2017</option>
@@ -93,18 +93,16 @@
                                 </div>
 
                         </form>
-
                         <form id="form_inventory">
                             <!- Seccion Inventory ->
-                                <div class="mb-4 none">
-                                    <div class="relative mt-6">
+                                <div class="mb-4  none ">
+                                    <div class="mt-6 ">
                                         <label class="block text-white text-sm font-bold mb-2" for="departamento">
                                             DEPARTAMENTO
                                         </label>
-                                        <select
-                                            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                        <select 
+                                            class="block  w-full p-2 mb-6 text-sm bg-gray-200 border border-gray-200 text-gray-700 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                             id="departamento" >
-                                            <option >Elige un departamento</option>
                                         </select>
                                         <div
                                             class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -116,13 +114,13 @@
                                         </div>
                                     </div>
 
-                                    <div class="relative mt-6">
+                                    <div class="mt-6">
                                         <label class="block text-white text-sm font-bold mb-2" for="municipio">
                                             MUNICIPIO
                                         </label>
                                         <select
-                                            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="municipio" >
+                                            class="block w-full text-sm bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                            id="municipio" required>
                                             
                                             
                                         </select>
