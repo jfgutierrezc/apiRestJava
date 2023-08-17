@@ -6,13 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zabbix Clientes</title>    
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .select-scroll {
-            max-height: 200px; /* Ajusta la altura máxima según tu diseño */
-            overflow-y: auto;
-        }
-    </style>
-  </head>
+    </head>
 
 <body>
 
@@ -60,7 +54,7 @@
 
                                     <div class="mt-2 flex items-center justify-end gap-x-6">
                                         <button
-                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
+                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Guardar</button>
                                     </div>
                                 </div>
 
@@ -77,7 +71,8 @@
                                         </label>
                                         <select
                                             class="block text-sm w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="macros">
+                                            id="macros"required >
+                                            <option value="" disabled selected>Seleccione una comunidad SNMP</option>
                                             <option>Azt3c4</option>
                                             <option>Azteca2017</option>
                                             <option>Public</option>
@@ -94,7 +89,7 @@
                                     </div>
                                     <div class="mt-2 flex items-center justify-end gap-x-6">
                                         <button
-                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
+                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Guardar</button>
                                     </div>
                                 </div>
 
@@ -108,7 +103,7 @@
                                         </label>
                                         <select 
                                             class="block  w-full p-2 mb-6 text-sm bg-gray-200 border border-gray-200 text-gray-700 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="departamento" >
+                                            id="departamento" required >
                                         </select>
                                         <div
                                             class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -142,7 +137,7 @@
 
                                     <div class="mt-2 flex items-center justify-end gap-x-6">
                                         <button
-                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
+                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Crear</button>
                                     </div>
                                 </div>
 
