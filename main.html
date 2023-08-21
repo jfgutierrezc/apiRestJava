@@ -6,152 +6,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zabbix Clientes</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="src/logo.svg" type="image/x-icon">
 </head>
 
 <body>
+    <div class="bg-gray-950 min-h-screen flex justify-center items-center p-4">
+        <form class="bg-zinc-700 rounded-lg w-full md:max-w-md p-6 md:p-8">
+            <img class="w-2/3 mx-auto mt-2 md:mt-0 md:w-3/4" src="src/logo-form.svg" alt="logo">
+            <div class=" flex flex-wrap -mx-3 mb-2">
+                <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                    <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="host">
+                        NOMBRE HOST
+                    </label>
+                    <input
+                        class="appearance-none block w-full bg-gray-200 text-gray-700 border focus:border-sky-400 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+                        id="host" type="text" placeholder="Host" required>
 
-
-    <div class="bg-gray-950 w-screen h-screen flex justify-center items-center">
-
-        <!- Inicio Card ->
-            <div class="block max-w-sm mt-auto mb-auto rounded-lg bg-zinc-700">
-
-                <img class="w-3/5 mx-auto " src="src/logo-form.svg" alt="logo">
-                <div class="px-6 py-4">
-                    <!- Menu ->
-                        <ul class="menu flex border-b border-sky-300">
-                            <li class="-mb-px mb-2">
-                                <a class="bg-zinc-700 focus:text-blue-400 inline-block  focus:border-l focus:border-t border-sky-300 focus:border-r rounded-t py-2 px-4 text-white font-semibold"
-                                    href="#" onclick="mostrar('form_host')" id="menu_host">Host</a>
-                            </li>
-                            <li class="mr-1">
-                                <a class="bg-zinc-700 focus:text-blue-400 inline-block py-2 px-4 focus:border-t focus:border-r focus:border-l rounded-t border-sky-300 text-white hover:text-blue-400 font-semibold"
-                                    href="#"  onclick="mostrar('form_macros')">Macros</a>
-                            </li>
-                            <li class="mr-1">
-                                <a class="bg-zinc-700 focus:text-blue-400 inline-block py-2 px-4 focus:border-t focus:border-r focus:border-l rounded-t border-sky-300 text-white hover:text-blue-400 font-semibold"
-                                    href="#"  onclick="mostrar('form_inventory')">Inventory</a>
-                            </li>
-                        </ul>
-
-                        <form id="form_host">
-                            <!- Seccion Host ->
-                                <div class="mb-4 mt-6 ">
-                                    <label class="block text-white text-sm font-bold mb-2" for="Interfaces">
-                                        NOMBRE INTERFACES
-                                    </label>
-                                    <input
-                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                        id="interface" type="text" placeholder="Interface">
-
-                                        <label class="block text-white text-sm font-bold mb-2" for="Ip">
-                                            IP
-                                        </label>
-                                        <input
-                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                            id="ip" type="text" placeholder="Ip">
-    
-                                            <div class="mt-2 flex items-center justify-end gap-x-6">
-                                                <button
-                                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
-                                            </div>
-                                </div>
-                             
-                                
-                        </form>
-
-
-                        <form id="form_macros">
-                            <!- Seccion Macros ->
-                                <div class="mb-4 none">
-                                    <div class="relative  mt-6">
-                                        <label class="block text-white text-sm font-bold mb-2" for="macros">
-                                            SNMP_COMMUNITY
-                                        </label>
-                                        <select
-                                            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="macros">
-                                            <option>Azt3c4</option>
-                                            <option>Azteca2017</option>
-                                            <option>Public</option>
-                                        </select>
-                                        <div
-                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 20 20">
-                                                <path
-                                                    d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                            </svg>
-                                        </div>
-                                        
-                                    </div>
-                                    <div class="mt-2 flex items-center justify-end gap-x-6">
-                                        <button
-                                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
-                                    </div>
-                                </div>
-
-                        </form>
-
-                        <form id="form_inventory">
-                            <!- Seccion Inventory ->
-                                <div class="mb-4 none">
-                                    <div class="relative mt-6">
-                                        <label class="block text-white text-sm font-bold mb-2" for="DEPARTAMENTO">
-                                            DEPARTAMENTO
-                                        </label>
-                                        <select
-                                            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="departamento">
-                                            <option>Cundinamarca</option>
-                                            <option>Azteca2017</option>
-                                            <option>Public</option>
-                                        </select>
-                                        <div
-                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 20 20">
-                                                <path
-                                                    d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-
-                                    <div class="relative mt-6">
-                                        <label class="block text-white text-sm font-bold mb-2" for="MUNICIPIO">
-                                            MUNICIPIO
-                                        </label>
-                                        <select
-                                            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                            id="municipio">
-                                            <option>Bogota</option>
-                                            <option>Azteca2017</option>
-                                            <option>Public</option>
-                                        </select>
-                                        <div
-                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 20 20">
-                                                <path
-                                                    d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    
-                                        <div class="mt-2 flex items-center justify-end gap-x-6">
-                                            <button
-                                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">Create</button>
-                                        </div>
-                                </div>
-
-
-                        </form>
-
-
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="ip">
+                        IP
+                    </label>
+                    <input
+                        class="appearance-none block w-full bg-gray-200 text-gray-700 border border focus:border-sky-400 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        id="ip" type="text" placeholder="xxx.xxx.xxx.xxx" onchange="validaIp('ip')" onkeypress="soloNumeros();" required>
                 </div>
             </div>
 
 
+            <div class="flex flex-wrap -mx-3 mb-2">
+                <div class="w-full px-3 mb-6 md:mb-0">
+                    <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="macros">
+                        SNMP_COMMUNITY
+                    </label>
+                    <div class="relative">
+                        <select
+                            class="block appearance-none w-full bg-gray-200 border border focus:border-sky-400 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="macros" required>
+                            <option value="" disabled selected>Seleccione una comunidad SNMP</option>
+                            <option>Azt3c4</option>
+                            <option>Azteca2017</option>
+                            <option>Public</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="flex flex-wrap -mx-3 mb-2">
+                <div class="w-full px-3 mb-6 md:mb-0">
+                    <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="departamento">
+                        DEPARTAMETO
+                    </label>
+                    <div class="relative">
+                        <select
+                            class="block appearance-none w-full bg-gray-200 border border focus:border-sky-400 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="departamento" required>
+
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="flex flex-wrap -mx-3 mb-2">
+                <div class="w-full px-3 mb-6 md:mb-0">
+                    <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="municipio">
+                        MUNICIPIO
+                    </label>
+                    <div class="relative">
+                        <select
+                            class="block appearance-none w-full bg-gray-200 border border focus:border-sky-400 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="municipio" required>
+
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="md:flex md:items-center mt-5">
+                <div class="md:w-2/3 w-1/2 mx-auto flex justify-center">
+                    <button
+                        class="shadow bg-blue-500 hover:bg-blue-700 focus:shadow-outline focus:outline-none text-white font-bold py-3 px-8 rounded"
+                        type="submit">
+                        Crear
+                    </button>
+                </div>
+            </div>
+            <div class="mt-1"></div>
+
+        </form>
+
+
+    </div>
 
 
 
