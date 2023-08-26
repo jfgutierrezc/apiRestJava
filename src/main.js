@@ -135,3 +135,168 @@ function guardarMacros(event) {
 }
 
 
+
+
+// main.js
+
+// URL de la API de autenticación
+const authURL = 'http://10.144.2.160/zabbix/api_jsonrpc.php';
+// main.js
+// Almacenar el token de autenticación y la sesión ID
+let authToken = null;
+let sessionId = null;
+
+// Variable para rastrear si ya se ha iniciado sesión
+let isLoggedIn = false;
+
+async function checkSession() {
+  if (authToken) {
+      const requestData = {
+          jsonrpc: '2.0',
+          method: 'user.checkAuthentication',
+          params: {
+              token: authToken // Utiliza el authToken como token para verificar la sesión
+          },
+          id: 1
+      };
+
+      const response = await fetch(authURL, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+      });
+
+      const responseData = await response.json();
+      if (responseData.result === true) {
+          console.log('Sesión activa.');
+          return true;
+      } else {
+          console.log('Sesión no activa.');
+          return false;
+      }
+  } else {
+      console.log('No hay token para verificar la sesión.');
+      return false;
+  }
+}
+
+// Función para realizar el inicio de sesión
+async function login(username, password) {
+    console.log('Intentando inicio de sesión...');
+    
+    if (isLoggedIn) {
+        console.log('Ya existe una sesión activa.');
+        return;
+    }
+
+    const requestData = {
+        jsonrpc: '2.0',
+        method: 'user.login',
+        params: {
+            user: username,
+            password: password
+        },
+        id: 2
+    };
+
+    const response = await fetch(authURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+    });
+
+    const responseData = await response.json();
+    if (responseData.result) {
+        authToken = responseData.result;
+        sessionId = responseData.result.sessionid;
+        isLoggedIn = true;
+        console.log('Inicio de sesión exitoso. Token:', authToken);
+        //window.location.href = 'main.html';
+    } else {
+        console.log('Error en inicio de sesión.');
+    }
+}
+
+// Función para realizar el cierre de sesión
+async function logout() {
+  if (await checkSession()) {
+      console.log('Intentando cierre de sesión...');
+      console.log("cerrar session: "+authToken)
+
+      const requestData = {
+          jsonrpc: '2.0',
+          method: 'user.logout',
+          params: [],
+          id: 3,
+          auth: authToken // Aquí se pasa el token de autenticación
+      };
+
+      const response = await fetch(authURL, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+      });
+
+      const responseData = await response.json();
+      if (responseData.result) {
+          authToken = null;
+          sessionId = null;
+          isLoggedIn = false;
+          console.log('Cierre de sesión exitoso.');
+          window.location.href = 'index.html';
+      } else {
+          console.log('Error en cierre de sesión.');
+      }
+  } else {
+      console.log('No hay sesión activa para cerrar.');
+  }
+}
+
+// Event listener para el formulario de inicio de sesión
+document.addEventListener('DOMContentLoaded', function () {
+    const loginForm = document.getElementById('formLogin');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            await login(username, password);
+        });
+    }
+
+    const logoutLink = document.getElementById('logout');
+    if (logoutLink) {
+        logoutLink.addEventListener('click', async function (event) {
+            event.preventDefault();
+
+            await logout();
+        });
+    }
+});
+
+
+const bcrypt = require('bcryptjs'); // Importa la biblioteca
+
+const originalPassword = 'holamundo'; // La contraseña original que deseas encriptar
+
+// Genera un hash bcrypt
+bcrypt.genSalt(12, function(err, salt) {
+  bcrypt.hash(originalPassword, salt, function(err, hash) {
+    if (err) {
+      console.error('Error al generar el hash:', err);
+    } else {
+      console.log('Hash bcrypt:', hash); // Este es el hash que puedes almacenar en tu base de datos
+    }
+  });
+});
+
+
+
