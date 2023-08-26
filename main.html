@@ -9,14 +9,18 @@
     <link rel="icon" href="src/logo.svg" type="image/x-icon">
 </head>
 
-<body>
-    <div class="bg-gray-950 min-h-screen flex justify-center items-center p-4">
-        <form class="bg-zinc-700 rounded-lg w-full md:max-w-md p-6 md:p-8">
+<body class="bg-gray-950">
+    <div class="flex justify-end p-4">
+        <a href="#" class="text-white text-sm" id="logout">Cerrar Sesión</a>
+    </div>
+
+    <div class="min-h-screen flex justify-center items-center p-4">
+        <form class="bg-zinc-700 rounded-lg w-full md:max-w-md p-6 md:p-8" id="mainForm">
             <img class="w-2/3 mx-auto mt-2 md:mt-0 md:w-3/4" src="src/logo-form.svg" alt="logo">
             <div class=" flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
 
-                    <- HOST ->
+                    <!- HOST ->
                         <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="host">
                             NOMBRE HOST
                         </label>
@@ -25,7 +29,7 @@
                             id="host" type="text" placeholder="Host" required>
                 </div>
 
-                <- IP ->
+                <!- IP ->
                     <div class="w-full md:w-1/2 px-3">
                         <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="ip">
                             IP
@@ -37,7 +41,7 @@
                     </div>
             </div>
 
-            <- SNMP_COMMUNITY ->
+            <!- SNMP_COMMUNITY ->
                 <div class="flex flex-wrap -mx-3 mb-2">
                     <div class="w-full px-3 mb-6 md:mb-0">
                         <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="macros">
@@ -65,7 +69,7 @@
 
                 </div>
 
-                <- DEPARTAMENTO ->
+                <!- DEPARTAMENTO ->
                     <div class="flex flex-wrap -mx-3 mb-2">
                         <div class="w-full px-3 mb-6 md:mb-0">
                             <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2"
@@ -91,7 +95,7 @@
 
                     </div>
 
-                    <- MUNICIPIO ->
+                   <!- MUNICIPIO ->
                         <div class="flex flex-wrap -mx-3 mb-2">
                             <div class="w-full px-3 mb-6 md:mb-0">
                                 <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2"
@@ -120,8 +124,8 @@
                         <div class="md:flex md:items-center mt-5">
                             <div class="md:w-2/3 w-1/2 mx-auto flex justify-center">
                                 <button
-                                    class="shadow bg-blue-500 hover:bg-blue-700 focus:shadow-outline focus:outline-none text-white font-bold py-3 px-8 rounded"
-                                    type="submit">
+                                    class="shadow bg-blue-500 hover:bg-blue-700 focus:shadow-outline focus:outline-none text-white font-bold py-3 px-8 rounded" id="botonCrear"
+                                    >
                                     Crear
                                 </button>
                             </div>
