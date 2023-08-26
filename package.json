@@ -2,7 +2,7 @@
   "name": "api-rest-java",
   "version": "1.0.0",
   "description": "consumption of rest api with java",
-  "main": "index.html",
+  "main": "main.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,8 +15,5 @@
   "bugs": {
     "url": "https://github.com/jfgutierrezc/apiRestJava/issues"
   },
-  "homepage": "https://github.com/jfgutierrezc/apiRestJava#readme",
-  "dependencies": {
-    "bcryptjs": "^2.4.3"
-  }
+  "homepage": "https://github.com/jfgutierrezc/apiRestJava#readme"
 }
