@@ -12,7 +12,8 @@ let selectedLongitud = "";
 const authURL = "http://10.144.2.160/zabbix/api_jsonrpc.php";
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => { 
+
   if (window.location.pathname.includes("main.html")) {
     // Obtiene los datos del archivo JSON usando la función obtenerDatos()
     data = await obtenerDatos();
@@ -29,7 +30,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     selectElement.addEventListener('change', guardarTemplate);
 
+    
+
   }
+
+  
 });
 
 // Obtiene los datos del archivo JSON usando fetch
@@ -315,4 +320,60 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+
+const gruposZabbix = {
+  jsonrpc: '2.0',
+  method: 'hostgroup.get',
+  params: {
+    output: ['name'],
+  },
+  "auth":"d5aef56bf650141b17ee54a7f1e51bdc",
+  id: 1,
+};
+
+// Realiza la solicitud JSON-RPC utilizando fetch()
+fetch(authURL, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(gruposZabbix),
+})
+  .then((response) => response.json())
+  .then((data) => {
+    // Verifica si la respuesta tiene éxito y contiene datos
+    if (data && data.result) {
+      const grupos = data.result; // Suponiendo que la respuesta contiene un campo "result" con los grupos
+
+      // Obtén el elemento de la lista UL donde se mostrarán las opciones
+      const listaGrupos = document.querySelector('#dropdownSearch ul');
+
+      // Recorre los datos y crea las opciones dinámicamente
+      grupos.forEach((grupo, index) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <div class="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+            <input
+              id="checkbox-item-${index + 11}"
+              type="checkbox"
+              value="${grupo.name}" // Suponiendo que el nombre del grupo está en el campo "name"
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+              />
+            <label
+              for="checkbox-item-${index + 11}"
+              class="w-full ml-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300"
+            >
+              ${grupo.name}
+            </label>
+          </div>
+        `;
+        listaGrupos.appendChild(listItem);
+      });
+    } else {
+      console.error('La solicitud JSON-RPC no tuvo éxito o no contiene datos válidos.');
+    }
+  })
+  .catch((error) => {
+    console.error('Error al realizar la solicitud JSON-RPC:', error);
+  });
 
