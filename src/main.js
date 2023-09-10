@@ -1,8 +1,13 @@
 // Selección de elementos del DOM
-const selectDepartamento = document.querySelector("#departamento");
-const selectMunicipio = document.querySelector("#municipio");
-const selectMacros = document.querySelector("#macros");
+const selectDepartamento = document.getElementById('departamento');
+const selectMunicipio = document.getElementById('municipio');
+const selectMacros = document.getElementById('macros');
 const selectElement = document.getElementById('template');
+const btnCrear = document.getElementById('botonCrear');
+const selectIp = document.getElementById('ip');
+const selectHost = document.getElementById('host');
+const selectComunidad = document.getElementById('macros');
+
 let departamentos = [];
 let data;
 let municipios = [];
@@ -10,6 +15,11 @@ const info = "/data/colombia.json";
 let selectedLatitud = "";
 let selectedLongitud = "";
 const authURL = "http://10.144.2.160/zabbix/api_jsonrpc.php";
+let selectedMunicipio = "";
+let selectedDepartamento = "";
+let hostName = ""; // Variable global para el nombre del host
+let ipAddres = ""; // Variable global para la dirección IP
+let comunidad = ""; // Variable global para la comunidad SNMP
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => { 
@@ -25,8 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     selectDepartamento.addEventListener("change", obtenerMunicipios);
     // Agrega un evento para cuando se cambie guarden las latitud y longitud
     selectMunicipio.addEventListener("change", guardarLatitudLongitud);
-    // Agrega un evento para cuando se cambie la selección de macros
-    selectMacros.addEventListener("change", guardarMacros);
+   
 
     selectElement.addEventListener('change', guardarTemplate);
 
@@ -102,8 +111,17 @@ function soloNumeros() {
 function guardarLatitudLongitud() {
   // Obtenemos el valor seleccionado en el campo de departamento
   const departamento = selectDepartamento.value;
+  
+  
   // Obtenemos el valor seleccionado en el campo de municipio
   const municipio = selectMunicipio.value;
+  
+
+  selectedDepartamento = departamento;
+  selectedMunicipio = municipio;
+
+  console.log(selectedDepartamento);
+  console.log(selectedMunicipio);
   // Buscamos en los datos del JSON una entrada que coincida con el departamento y municipio seleccionados
   const seleccion = data.find((dato) => dato.departamento === departamento);
   // Si encontramos una selección válida
@@ -151,6 +169,7 @@ function guardarLatitudLongitud() {
         })
         .then(response => response.json())
         .then(data => {
+          
             const selectElement = document.getElementById('template');
 
             // Recorre los objetos de "result" y crea opciones en el select
@@ -172,11 +191,6 @@ function guardarTemplate() {
     
   const selectedValue = selectElement.value;
   console.log('Valor seleccionado:', selectedValue);
-}
-
-// Función para guardar la opción seleccionada en el formulario de macros
-function guardarMacros(event) {
-  const opcionSeleccionada = event.target.value;
 }
 
 
@@ -236,7 +250,7 @@ async function login(username, password) {
       user: username,
       password: password,
     },
-    id: 2,
+    id: 1,
   };
 
   const response = await fetch(authURL, {
@@ -269,7 +283,7 @@ async function logout() {
       jsonrpc: "2.0",
       method: "user.logout",
       params: [],
-      id: 3,
+      id: 1,
       auth: authToken, // Aquí se pasa el token de autenticación
     };
 
@@ -321,59 +335,110 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-const gruposZabbix = {
-  jsonrpc: '2.0',
-  method: 'hostgroup.get',
-  params: {
-    output: ['name'],
-  },
-  "auth":"d5aef56bf650141b17ee54a7f1e51bdc",
-  id: 1,
-};
+selectIp.addEventListener('change', function () {
+  const ipAddres = selectIp.value;
+  console.log(ipAddres);
+});
 
-// Realiza la solicitud JSON-RPC utilizando fetch()
-fetch(authURL, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(gruposZabbix),
-})
-  .then((response) => response.json())
-  .then((data) => {
-    // Verifica si la respuesta tiene éxito y contiene datos
-    if (data && data.result) {
-      const grupos = data.result; // Suponiendo que la respuesta contiene un campo "result" con los grupos
+selectHost.addEventListener('change', function () {
+  const hostName = selectHost.value;
+  console.log(hostName);
+});
 
-      // Obtén el elemento de la lista UL donde se mostrarán las opciones
-      const listaGrupos = document.querySelector('#dropdownSearch ul');
+selectComunidad.addEventListener('change', function () {  
+  const comunidad = selectComunidad.value;
+  console.log(comunidad);
+});
 
-      // Recorre los datos y crea las opciones dinámicamente
-      grupos.forEach((grupo, index) => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-          <div class="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-            <input
-              id="checkbox-item-${index + 11}"
-              type="checkbox"
-              value="${grupo.name}" // Suponiendo que el nombre del grupo está en el campo "name"
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-              />
-            <label
-              for="checkbox-item-${index + 11}"
-              class="w-full ml-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300"
-            >
-              ${grupo.name}
-            </label>
-          </div>
-        `;
-        listaGrupos.appendChild(listItem);
-      });
-    } else {
-      console.error('La solicitud JSON-RPC no tuvo éxito o no contiene datos válidos.');
-    }
+
+btnCrear.addEventListener('click', function () {
+
+
+  // Llama a la función guardarTemplate para definir selectedValue
+  guardarTemplate();
+
+  // Ahora puedes acceder a selectedValue
+ 
+  const hostName = selectHost.value;
+  const ipAddres = selectIp.value;
+  const comunidad = selectComunidad.value;
+
+  const hostCreate= {
+    jsonrpc: '2.0',
+    method: 'host.create',
+    params: {
+      host: hostName,
+      inventory_mode: 1,
+      status: 0,
+      proxy_hostid: '10421',
+      interfaces: [
+        {
+          type: 2,
+          main: 1,
+          useip: 1,
+          ip: ipAddres,
+          dns: '',
+          port: '161',
+          details: {
+            version: 2,
+            bulk: 0,
+            community: '{$SNMP_COMMUNITY}',
+          },
+        },
+      ],
+      groups: [
+        {
+          groupid: '51',
+        },
+      ],
+      templates: [
+        {
+          templateid: '10095',
+        },
+      ],
+      macros: [
+        {
+          macro: '{$HOST.TYPE}',
+          value: 'Cliente',
+        },
+        {
+          macro: '{$SNMP_COMMUNITY}',
+          value: comunidad,
+        },
+      ],
+      inventory: {
+        site_city: selectedMunicipio,
+        site_state: selectedDepartamento,
+        location_lat: selectedLatitud,
+        location_lon: selectedLongitud
+      },
+    },
+    auth: "d5aef56bf650141b17ee54a7f1e51bdc",
+    id: 1,
+    
+  };
+
+  console.log(hostCreate);
+  
+  // Realiza la solicitud POST a la API de Zabbix
+  fetch(authURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(hostCreate),
   })
-  .catch((error) => {
-    console.error('Error al realizar la solicitud JSON-RPC:', error);
-  });
+    .then((response) => response.json())
+    .then((data) => {
+      // Maneja la respuesta de la API aquí
+      console.log('Respuesta de la API de Zabbix:', data);
+    })
+    .catch((error) => {
+      // Maneja los errores aquí
+      console.error('Error en la solicitud a la API de Zabbix:', error);
+    });
+  
+  
+
+});
 
