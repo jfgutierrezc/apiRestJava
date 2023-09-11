@@ -22,6 +22,7 @@ let hostName = ""; // Variable global para el nombre del host
 let ipAddres = ""; // Variable global para la dirección IP
 let comunidad = ""; // Variable global para la comunidad SNMP
 let authToken = null;
+let selectedTemplateId = "";
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => { 
@@ -51,8 +52,15 @@ document.addEventListener("DOMContentLoaded", async () => {
    
 
     selectElement.addEventListener('change', guardarTemplate);
+    selectElement.addEventListener('change', guardarTemplateId);
+
+    // Llama a la función para verificar la sesión cuando la página se carga
+   
 
     obtenerTemplates();
+    checkLoggedIn();
+   
+  
 
   }
 
@@ -173,7 +181,7 @@ async function obtenerTemplates() {
         "jsonrpc": "2.0",
         "method": "template.get",
         "params": {
-          "output": ["host"],
+          "output": ["host","templateid"],
           "groupids": "9"
         },
         "auth": authToken,
@@ -185,15 +193,13 @@ async function obtenerTemplates() {
       const data = await response.json();
       const selectElement = document.getElementById('template');
 
-     
-
       // Verifica si 'data.result' es un array antes de iterar
       if (Array.isArray(data.result)) {
         // Recorre los objetos de "result" y crea opciones en el select
         data.result.forEach(obj => {
           const option = document.createElement('option');
-          option.value = obj.host; // Valor que se enviará cuando se seleccione la opción
-          option.textContent = obj.host; // Texto visible para el usuario
+          option.value = obj.templateid; // Valor que se enviará cuando se seleccione la opción (templateid)
+          option.textContent = obj.host; // Texto visible para el usuario (nombre del host)
           selectElement.appendChild(option);
         });
       } else {
@@ -210,13 +216,17 @@ async function obtenerTemplates() {
 
 
 
-
-
-
 function guardarTemplate() {
     
   const selectedValue = selectElement.value;
   console.log('Valor seleccionado:', selectedValue);
+}
+
+
+function guardarTemplateId() {
+  const selectedOption = selectElement.selectedOptions[0];
+  selectedTemplateId = selectedOption.value;
+  console.log('templateid seleccionado:', selectedTemplateId);
 }
 
 
@@ -335,6 +345,23 @@ async function checkSession(sessionId) {
 }
 
 
+// Esta función verificará si el usuario ha iniciado sesión
+async function checkLoggedIn() {
+  const storedToken = localStorage.getItem('authToken');
+  if (!storedToken) {
+    // Si no hay un token almacenado, redirigir a la página de inicio de sesión
+    window.location.href = 'index.html';
+  } else {
+    // Si hay un token almacenado, verificar si la sesión es válida
+    const sessionValid = await checkSession(storedToken);
+    if (!sessionValid) {
+      // Si la sesión no es válida, redirigir a la página de inicio de sesión
+      window.location.href = 'index.html';
+    }
+  }
+}
+
+
 
 
 selectIp.addEventListener('change', function () {
@@ -355,10 +382,10 @@ selectComunidad.addEventListener('change', function () {
 
 btnCrear.addEventListener('click', function () {
 
-
+  guardarTemplateId();
   // Llama a la función guardarTemplate para definir selectedValue
   guardarTemplate();
-
+ 
   // Ahora puedes acceder a selectedValue
  
   const hostName = selectHost.value;
@@ -395,7 +422,7 @@ btnCrear.addEventListener('click', function () {
       ],
       templates: [
         {
-          templateid: '10095',
+          templateid: selectedTemplateId,
         },
       ],
       macros: [
