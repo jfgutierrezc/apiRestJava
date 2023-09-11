@@ -8,6 +8,7 @@ const selectIp = document.getElementById('ip');
 const selectHost = document.getElementById('host');
 const selectComunidad = document.getElementById('macros');
 
+
 let departamentos = [];
 let data;
 let municipios = [];
@@ -20,9 +21,21 @@ let selectedDepartamento = "";
 let hostName = ""; // Variable global para el nombre del host
 let ipAddres = ""; // Variable global para la dirección IP
 let comunidad = ""; // Variable global para la comunidad SNMP
+let authToken = null;
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => { 
+
+  const storedToken = localStorage.getItem('authToken');
+  if (storedToken) {
+    // Si hay un token almacenado, establecerlo como authToken
+    authToken = storedToken;
+
+    console.log('Sesión activa encontrada con token:', authToken);
+  } else {
+    console.log('No se encontró una sesión activa.');
+  }
+    
 
   if (window.location.pathname.includes("main.html")) {
     // Obtiene los datos del archivo JSON usando la función obtenerDatos()
@@ -39,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     selectElement.addEventListener('change', guardarTemplate);
 
-    
+    obtenerTemplates();
 
   }
 
@@ -148,42 +161,55 @@ function guardarLatitudLongitud() {
 }
 
 
+// Función para obtener los templates disponibles
+async function obtenerTemplates() {
+  try {
+    const response = await fetch(authURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "jsonrpc": "2.0",
+        "method": "template.get",
+        "params": {
+          "output": ["host"],
+          "groupids": "9"
+        },
+        "auth": authToken,
+        "id": 1
+      })
+    });
 
+    if (response.ok) {
+      const data = await response.json();
+      const selectElement = document.getElementById('template');
 
-        // Realiza la solicitud HTTP
-        fetch(authURL, {
-            method: 'POST', // O el método HTTP que corresponda
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "jsonrpc": "2.0",
-                "method": "template.get",
-                "params": {
-                    "output": ["host"],
-                    "groupids": "9"
-                },
-                "auth": "d5aef56bf650141b17ee54a7f1e51bdc",
-                "id": 1
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-          
-            const selectElement = document.getElementById('template');
+     
 
-            // Recorre los objetos de "result" y crea opciones en el select
-            data.result.forEach(obj => {
-                const option = document.createElement('option');
-                option.value = obj.host; // Valor que se enviará cuando se seleccione la opción
-                option.textContent = obj.host; // Texto visible para el usuario
-                selectElement.appendChild(option);
-                
-            });
-        })
-        .catch(error => {
-            console.error('Error al obtener los datos:', error);
+      // Verifica si 'data.result' es un array antes de iterar
+      if (Array.isArray(data.result)) {
+        // Recorre los objetos de "result" y crea opciones en el select
+        data.result.forEach(obj => {
+          const option = document.createElement('option');
+          option.value = obj.host; // Valor que se enviará cuando se seleccione la opción
+          option.textContent = obj.host; // Texto visible para el usuario
+          selectElement.appendChild(option);
         });
+      } else {
+        console.error('La respuesta de la API no contiene un array de resultados:', data);
+      }
+    } else {
+      console.error('Error al obtener los datos:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error en la solicitud a la API de Zabbix:', error);
+  }
+}
+
+
+
+
 
 
 
@@ -194,145 +220,121 @@ function guardarTemplate() {
 }
 
 
-// Almacenar el token de autenticación y la sesión ID
-let authToken = null;
-let sessionId = null;
+// Función para realizar el inicio de sesión
+async function login() {
+  event.preventDefault(); // Evita que el formulario se envíe automáticamente
 
-// Variable para rastrear si ya se ha iniciado sesión
-let isLoggedIn = false;
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
 
-async function checkSession() {
-  if (authToken) {
-    const requestData = {
-      jsonrpc: "2.0",
-      method: "user.checkAuthentication",
-      params: {
-        token: authToken, // Utiliza el authToken como token para verificar la sesión
-      },
-      id: 1,
-    };
+  const params = {
+    username: username,
+    password: password,
+  };
 
+  try {
     const response = await fetch(authURL, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestData),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'user.login',
+        params: params,
+        id: 1,
+      }),
     });
 
-    const responseData = await response.json();
-    if (responseData.result === true) {
-      console.log("Sesión activa.");
-      return true;
+    if (response.ok) {
+      const data = await response.json();
+      authToken = data.result;
+
+      // Almacenar el token en el almacenamiento local
+      localStorage.setItem('authToken', authToken);
+
+      console.log('Inicio de sesión exitoso.');
+      console.log('Token de autenticación:', authToken);
+
+      // Redirigir a la página principal después del inicio de sesión
+      window.location.href = 'main.html';
     } else {
-      console.log("Sesión no activa.");
-      return false;
+      console.error('Error al iniciar sesión:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error al realizar la solicitud:', error);
+  }
+}
+
+// Función para cerrar sesión
+async function logout() {
+  if (authToken) {
+    try {
+      const response = await fetch(authURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'user.logout',
+          params: [],
+          id: 1,
+          auth: authToken,
+        }),
+      });
+
+      if (response.ok) {
+        // Eliminar el token del almacenamiento local
+        localStorage.removeItem('authToken');
+        authToken = null; // Establecer el token como nulo
+        console.log('Cierre de sesión exitoso.');
+        // Redirigir a la página de inicio de sesión
+        window.location.href = 'index.html';
+      } else {
+        console.error('Error al cerrar sesión.');
+      }
+    } catch (error) {
+      console.error('Error al realizar la solicitud:', error);
     }
   } else {
-    console.log("No hay token para verificar la sesión.");
+    console.log('No hay sesión activa para cerrar.');
+  }
+}
+
+// Función para verificar la sesión
+async function checkSession(sessionId) {
+  try {
+    const response = await fetch(authURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'user.checkAuthentication',
+        params: {
+          sessionid: sessionId,
+        },
+        id: 1,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Sesión válida:', data.result);
+      return true;
+    } else {
+      console.error('Sesión no válida.');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error al verificar la sesión:', error);
     return false;
   }
 }
 
-// Función para realizar el inicio de sesión
-async function login(username, password) {
-  console.log("Intentando inicio de sesión...");
 
-  if (isLoggedIn) {
-    console.log("Ya existe una sesión activa.");
-    return;
-  }
-
-  const requestData = {
-    jsonrpc: "2.0",
-    method: "user.login",
-    params: {
-      user: username,
-      password: password,
-    },
-    id: 1,
-  };
-
-  const response = await fetch(authURL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestData),
-  });
-
-  const responseData = await response.json();
-  if (responseData.result) {
-    authToken = responseData.result;
-    sessionId = responseData.result.sessionid;
-    isLoggedIn = true;
-    console.log("Inicio de sesión exitoso. Token:", authToken);
-    //window.location.href = 'main.html';
-  } else {
-    console.log("Error en inicio de sesión.");
-  }
-}
-
-// Función para realizar el cierre de sesión
-async function logout() {
-  if (await checkSession()) {
-    console.log("Intentando cierre de sesión...");
-    console.log("cerrar session: " + authToken);
-
-    const requestData = {
-      jsonrpc: "2.0",
-      method: "user.logout",
-      params: [],
-      id: 1,
-      auth: authToken, // Aquí se pasa el token de autenticación
-    };
-
-    const response = await fetch(authURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestData),
-    });
-
-    const responseData = await response.json();
-    if (responseData.result) {
-      authToken = null;
-      sessionId = null;
-      isLoggedIn = false;
-      console.log("Cierre de sesión exitoso.");
-      window.location.href = "index.html";
-    } else {
-      console.log("Error en cierre de sesión.");
-    }
-  } else {
-    console.log("No hay sesión activa para cerrar.");
-  }
-}
-
-// Event listener para el formulario de inicio de sesión
-document.addEventListener("DOMContentLoaded", function () {
-  const loginForm = document.getElementById("formLogin");
-  if (loginForm) {
-    loginForm.addEventListener("submit", async function (event) {
-      event.preventDefault();
-
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-
-      await login(username, password);
-    });
-  }
-
-  const logoutLink = document.getElementById("logout");
-  if (logoutLink) {
-    logoutLink.addEventListener("click", async function (event) {
-      event.preventDefault();
-
-      await logout();
-    });
-  }
-});
 
 
 selectIp.addEventListener('change', function () {
@@ -413,7 +415,7 @@ btnCrear.addEventListener('click', function () {
         location_lon: selectedLongitud
       },
     },
-    auth: "d5aef56bf650141b17ee54a7f1e51bdc",
+    auth: authToken,
     id: 1,
     
   };
