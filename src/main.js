@@ -55,8 +55,138 @@ document.addEventListener("DOMContentLoaded", async () => {
     selectElement.addEventListener('change', guardarTemplate);
     selectElement.addEventListener('change', guardarTemplateId);
 
-    // Llama a la función para verificar la sesión cuando la página se carga
-   
+    
+    if (selectIp) {
+      selectIp.addEventListener('change', function () {
+        const ipAddres = selectIp.value;
+        console.log(ipAddres);
+      });
+    }
+
+if (selectHost) {
+    selectIp.addEventListener('change', function () {
+      const ipAddres = selectIp.value;
+      console.log(ipAddres);
+    });
+
+  }
+
+  if (selectHost){
+    selectHost.addEventListener('change', function () {
+      const hostName = selectHost.value;
+      console.log(hostName);
+    });
+    
+  }
+
+  if (selectComunidad){
+
+    selectComunidad.addEventListener('change', function () {  
+      const comunidad = selectComunidad.value;
+      console.log(comunidad);
+    });
+    
+  
+  }
+
+
+  
+  if (btnCrear) {
+
+    btnCrear.addEventListener('click', async function () {
+      event.preventDefault(); 
+      const proxyDisponible = await obtenerProxyDisponible();
+    
+      if (proxyDisponible) {
+        guardarTemplateId();
+        guardarTemplate();
+    
+        const hostName = selectHost.value;
+        const ipAddres = selectIp.value;
+        const comunidad = selectComunidad.value;
+    
+        const hostCreate = {
+          jsonrpc: '2.0',
+          method: 'host.create',
+          params: {
+            host: hostName,
+            inventory_mode: 1,
+            status: 0,
+            proxy_hostid: proxyDisponible.proxyid, // Asigna el proxy disponible al host
+            interfaces: [
+              {
+                type: 2,
+                main: 1,
+                useip: 1,
+                ip: ipAddres,
+                dns: '',
+                port: '161',
+                details: {
+                  version: 2,
+                  bulk: 0,
+                  community: '{$SNMP_COMMUNITY}',
+                },
+              },
+            ],
+            groups: [
+              {
+                groupid: '51',
+              },
+            ],
+            templates: [
+              {
+                templateid: selectedTemplateId,
+              },
+            ],
+            macros: [
+              {
+                macro: '{$HOST.TYPE}',
+                value: 'Cliente',
+              },
+              {
+                macro: '{$SNMP_COMMUNITY}',
+                value: comunidad,
+              },
+            ],
+            inventory: {
+              site_city: selectedMunicipio,
+              site_state: selectedDepartamento,
+              location_lat: selectedLatitud,
+              location_lon: selectedLongitud
+            },
+          },
+          auth: authToken,
+          id: 1,
+        };
+    
+        console.log(hostCreate);
+    
+        // Realiza la solicitud POST a la API de Zabbix
+        fetch(authURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(hostCreate),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Maneja la respuesta de la API aquí
+            console.log('Respuesta de la API de Zabbix:', data);
+            formulario.reset();
+          })
+          .catch((error) => {
+            // Maneja los errores aquí
+            console.error('Error en la solicitud a la API de Zabbix:', error);
+          });
+      }
+    });
+
+  }
+
+  
+ 
+
 
     obtenerTemplates();
     checkLoggedIn();
@@ -364,23 +494,6 @@ async function checkLoggedIn() {
 
 
 
-
-selectIp.addEventListener('change', function () {
-  const ipAddres = selectIp.value;
-  console.log(ipAddres);
-});
-
-selectHost.addEventListener('change', function () {
-  const hostName = selectHost.value;
-  console.log(hostName);
-});
-
-selectComunidad.addEventListener('change', function () {  
-  const comunidad = selectComunidad.value;
-  console.log(comunidad);
-});
-
-
 async function obtenerProxyDisponible() {
   try {
     const response = await fetch(authURL, {
@@ -407,9 +520,10 @@ async function obtenerProxyDisponible() {
         console.error('No se encontraron proxies disponibles.');
         return null;
       }
-
+      
       // Filtra los proxies para encontrar el que tiene la menor cantidad de hosts y no es el proxy 6
       const proxiesDisponibles = data.result.filter(proxy => proxy.proxyid !== '6');
+      console.log('Proxies disponibles:', proxiesDisponibles);
       if (proxiesDisponibles.length === 0) {
         console.error('No hay proxies disponibles que no sean el proxy 6.');
         return null;
@@ -422,6 +536,7 @@ async function obtenerProxyDisponible() {
       const proxyAleatorio = proxiesDisponibles[Math.floor(Math.random() * proxiesDisponibles.length)];
 
       return proxyAleatorio;
+
     } else {
       console.error('Error al obtener los datos de los proxies:', response.statusText);
       return null;
@@ -433,93 +548,5 @@ async function obtenerProxyDisponible() {
 }
 
 
-btnCrear.addEventListener('click', async function () {
-  event.preventDefault(); 
-  const proxyDisponible = await obtenerProxyDisponible();
-
-  if (proxyDisponible) {
-    guardarTemplateId();
-    guardarTemplate();
-
-    const hostName = selectHost.value;
-    const ipAddres = selectIp.value;
-    const comunidad = selectComunidad.value;
-
-    const hostCreate = {
-      jsonrpc: '2.0',
-      method: 'host.create',
-      params: {
-        host: hostName,
-        inventory_mode: 1,
-        status: 0,
-        proxy_hostid: proxyDisponible.proxyid, // Asigna el proxy disponible al host
-        interfaces: [
-          {
-            type: 2,
-            main: 1,
-            useip: 1,
-            ip: ipAddres,
-            dns: '',
-            port: '161',
-            details: {
-              version: 2,
-              bulk: 0,
-              community: '{$SNMP_COMMUNITY}',
-            },
-          },
-        ],
-        groups: [
-          {
-            groupid: '51',
-          },
-        ],
-        templates: [
-          {
-            templateid: selectedTemplateId,
-          },
-        ],
-        macros: [
-          {
-            macro: '{$HOST.TYPE}',
-            value: 'Cliente',
-          },
-          {
-            macro: '{$SNMP_COMMUNITY}',
-            value: comunidad,
-          },
-        ],
-        inventory: {
-          site_city: selectedMunicipio,
-          site_state: selectedDepartamento,
-          location_lat: selectedLatitud,
-          location_lon: selectedLongitud
-        },
-      },
-      auth: authToken,
-      id: 1,
-    };
-
-    console.log(hostCreate);
-
-    // Realiza la solicitud POST a la API de Zabbix
-    fetch(authURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(hostCreate),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        // Maneja la respuesta de la API aquí
-        console.log('Respuesta de la API de Zabbix:', data);
-        formulario.reset();
-      })
-      .catch((error) => {
-        // Maneja los errores aquí
-        console.error('Error en la solicitud a la API de Zabbix:', error);
-      });
-  }
-});
 
 
