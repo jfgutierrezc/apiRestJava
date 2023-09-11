@@ -7,6 +7,7 @@ const btnCrear = document.getElementById('botonCrear');
 const selectIp = document.getElementById('ip');
 const selectHost = document.getElementById('host');
 const selectComunidad = document.getElementById('macros');
+const formulario = document.getElementById('mainForm');
 
 
 let departamentos = [];
@@ -380,94 +381,145 @@ selectComunidad.addEventListener('change', function () {
 });
 
 
-btnCrear.addEventListener('click', function () {
-
-  guardarTemplateId();
-  // Llama a la función guardarTemplate para definir selectedValue
-  guardarTemplate();
- 
-  // Ahora puedes acceder a selectedValue
- 
-  const hostName = selectHost.value;
-  const ipAddres = selectIp.value;
-  const comunidad = selectComunidad.value;
-
-  const hostCreate= {
-    jsonrpc: '2.0',
-    method: 'host.create',
-    params: {
-      host: hostName,
-      inventory_mode: 1,
-      status: 0,
-      proxy_hostid: '10421',
-      interfaces: [
-        {
-          type: 2,
-          main: 1,
-          useip: 1,
-          ip: ipAddres,
-          dns: '',
-          port: '161',
-          details: {
-            version: 2,
-            bulk: 0,
-            community: '{$SNMP_COMMUNITY}',
-          },
-        },
-      ],
-      groups: [
-        {
-          groupid: '51',
-        },
-      ],
-      templates: [
-        {
-          templateid: selectedTemplateId,
-        },
-      ],
-      macros: [
-        {
-          macro: '{$HOST.TYPE}',
-          value: 'Cliente',
-        },
-        {
-          macro: '{$SNMP_COMMUNITY}',
-          value: comunidad,
-        },
-      ],
-      inventory: {
-        site_city: selectedMunicipio,
-        site_state: selectedDepartamento,
-        location_lat: selectedLatitud,
-        location_lon: selectedLongitud
+async function obtenerProxyDisponible() {
+  try {
+    const response = await fetch(authURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    },
-    auth: authToken,
-    id: 1,
-    
-  };
-
-  console.log(hostCreate);
-  
-  // Realiza la solicitud POST a la API de Zabbix
-  fetch(authURL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(hostCreate),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      // Maneja la respuesta de la API aquí
-      console.log('Respuesta de la API de Zabbix:', data);
-    })
-    .catch((error) => {
-      // Maneja los errores aquí
-      console.error('Error en la solicitud a la API de Zabbix:', error);
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'proxy.get',
+        params: {
+          output: 'extend',
+          selectHosts: 'count',
+        },
+        auth: authToken,
+        id: 1,
+      }),
     });
-  
-  
 
+    if (response.ok) {
+      const data = await response.json();
+
+      if (!data.result || data.result.length === 0) {
+        console.error('No se encontraron proxies disponibles.');
+        return null;
+      }
+
+      // Filtra los proxies para encontrar el que tiene la menor cantidad de hosts y no es el proxy 6
+      const proxiesDisponibles = data.result.filter(proxy => proxy.proxyid !== '6');
+      if (proxiesDisponibles.length === 0) {
+        console.error('No hay proxies disponibles que no sean el proxy 6.');
+        return null;
+      }
+
+      // Ordena los proxies por la cantidad de hosts de manera ascendente
+      proxiesDisponibles.sort((a, b) => (a.hosts || []).length - (b.hosts || []).length);
+
+      // Elige aleatoriamente uno de los proxies con menos hosts
+      const proxyAleatorio = proxiesDisponibles[Math.floor(Math.random() * proxiesDisponibles.length)];
+
+      return proxyAleatorio;
+    } else {
+      console.error('Error al obtener los datos de los proxies:', response.statusText);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error en la solicitud a la API de Zabbix:', error);
+    return null;
+  }
+}
+
+
+btnCrear.addEventListener('click', async function () {
+  event.preventDefault(); 
+  const proxyDisponible = await obtenerProxyDisponible();
+
+  if (proxyDisponible) {
+    guardarTemplateId();
+    guardarTemplate();
+
+    const hostName = selectHost.value;
+    const ipAddres = selectIp.value;
+    const comunidad = selectComunidad.value;
+
+    const hostCreate = {
+      jsonrpc: '2.0',
+      method: 'host.create',
+      params: {
+        host: hostName,
+        inventory_mode: 1,
+        status: 0,
+        proxy_hostid: proxyDisponible.proxyid, // Asigna el proxy disponible al host
+        interfaces: [
+          {
+            type: 2,
+            main: 1,
+            useip: 1,
+            ip: ipAddres,
+            dns: '',
+            port: '161',
+            details: {
+              version: 2,
+              bulk: 0,
+              community: '{$SNMP_COMMUNITY}',
+            },
+          },
+        ],
+        groups: [
+          {
+            groupid: '51',
+          },
+        ],
+        templates: [
+          {
+            templateid: selectedTemplateId,
+          },
+        ],
+        macros: [
+          {
+            macro: '{$HOST.TYPE}',
+            value: 'Cliente',
+          },
+          {
+            macro: '{$SNMP_COMMUNITY}',
+            value: comunidad,
+          },
+        ],
+        inventory: {
+          site_city: selectedMunicipio,
+          site_state: selectedDepartamento,
+          location_lat: selectedLatitud,
+          location_lon: selectedLongitud
+        },
+      },
+      auth: authToken,
+      id: 1,
+    };
+
+    console.log(hostCreate);
+
+    // Realiza la solicitud POST a la API de Zabbix
+    fetch(authURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(hostCreate),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Maneja la respuesta de la API aquí
+        console.log('Respuesta de la API de Zabbix:', data);
+        formulario.reset();
+      })
+      .catch((error) => {
+        // Maneja los errores aquí
+        console.error('Error en la solicitud a la API de Zabbix:', error);
+      });
+  }
 });
+
 
