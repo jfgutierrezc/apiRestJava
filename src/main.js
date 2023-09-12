@@ -522,7 +522,7 @@ async function obtenerProxyDisponible() {
       }
       
       // Filtra los proxies para encontrar el que tiene la menor cantidad de hosts y no es el proxy 6
-      const proxiesDisponibles = data.result.filter(proxy => proxy.proxyid !== '6');
+      const proxiesDisponibles = data.result.filter(proxy => proxy.proxyid !== '10427');
       console.log('Proxies disponibles:', proxiesDisponibles);
       if (proxiesDisponibles.length === 0) {
         console.error('No hay proxies disponibles que no sean el proxy 6.');
