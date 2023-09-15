@@ -1,19 +1,18 @@
 // Selección de elementos del DOM
-const selectDepartamento = document.getElementById('departamento');
-const selectMunicipio = document.getElementById('municipio');
-const selectMacros = document.getElementById('macros');
-const selectElement = document.getElementById('template');
-const btnCrear = document.getElementById('botonCrear');
-const selectIp = document.getElementById('ip');
-const selectHost = document.getElementById('host');
-const selectComunidad = document.getElementById('macros');
-const formulario = document.getElementById('mainForm');
-
+const selectDepartamento = document.getElementById("departamento");
+const selectMunicipio = document.getElementById("municipio");
+const selectMacros = document.getElementById("macros");
+const selectElement = document.getElementById("template");
+const btnCrear = document.getElementById("botonCrear");
+const selectIp = document.getElementById("ip");
+const selectHost = document.getElementById("host");
+const selectComunidad = document.getElementById("macros");
+const formulario = document.getElementById("mainForm");
 
 let departamentos = [];
 let data;
 let municipios = [];
-const info = "/data/colombia.json";
+const info = "../data/colombia.json";
 let selectedLatitud = "";
 let selectedLongitud = "";
 const authURL = "http://10.144.2.160/zabbix/api_jsonrpc.php";
@@ -26,18 +25,16 @@ let authToken = null;
 let selectedTemplateId = "";
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
-document.addEventListener("DOMContentLoaded", async () => { 
-
-  const storedToken = localStorage.getItem('authToken');
+document.addEventListener("DOMContentLoaded", async () => {
+  const storedToken = localStorage.getItem("authToken");
   if (storedToken) {
     // Si hay un token almacenado, establecerlo como authToken
     authToken = storedToken;
 
-    console.log('Sesión activa encontrada con token:', authToken);
+    console.log("Sesión activa encontrada con token:", authToken);
   } else {
-    console.log('No se encontró una sesión activa.');
+    console.log("No se encontró una sesión activa.");
   }
-    
 
   if (window.location.pathname.includes("main.html")) {
     // Obtiene los datos del archivo JSON usando la función obtenerDatos()
@@ -50,158 +47,138 @@ document.addEventListener("DOMContentLoaded", async () => {
     selectDepartamento.addEventListener("change", obtenerMunicipios);
     // Agrega un evento para cuando se cambie guarden las latitud y longitud
     selectMunicipio.addEventListener("change", guardarLatitudLongitud);
-   
 
-    selectElement.addEventListener('change', guardarTemplate);
-    selectElement.addEventListener('change', guardarTemplateId);
+    selectElement.addEventListener("change", guardarTemplate);
+    selectElement.addEventListener("change", guardarTemplateId);
 
-    
     if (selectIp) {
-      selectIp.addEventListener('change', function () {
+      selectIp.addEventListener("change", function () {
         const ipAddres = selectIp.value;
         console.log(ipAddres);
       });
     }
 
-if (selectHost) {
-    selectIp.addEventListener('change', function () {
-      const ipAddres = selectIp.value;
-      console.log(ipAddres);
-    });
-
-  }
-
-  if (selectHost){
-    selectHost.addEventListener('change', function () {
-      const hostName = selectHost.value;
-      console.log(hostName);
-    });
-    
-  }
-
-  if (selectComunidad){
-
-    selectComunidad.addEventListener('change', function () {  
-      const comunidad = selectComunidad.value;
-      console.log(comunidad);
-    });
-    
-  
-  }
-
-
-  
-  if (btnCrear) {
-
-    btnCrear.addEventListener('click', async function () {
-      event.preventDefault(); 
-      const proxyDisponible = await obtenerProxyDisponible();
-    
-      if (proxyDisponible) {
-        guardarTemplateId();
-        guardarTemplate();
-    
-        const hostName = selectHost.value;
+    if (selectHost) {
+      selectIp.addEventListener("change", function () {
         const ipAddres = selectIp.value;
+        console.log(ipAddres);
+      });
+    }
+
+    if (selectHost) {
+      selectHost.addEventListener("change", function () {
+        const hostName = selectHost.value;
+        console.log(hostName);
+      });
+    }
+
+    if (selectComunidad) {
+      selectComunidad.addEventListener("change", function () {
         const comunidad = selectComunidad.value;
-    
-        const hostCreate = {
-          jsonrpc: '2.0',
-          method: 'host.create',
-          params: {
-            host: hostName,
-            inventory_mode: 1,
-            status: 0,
-            proxy_hostid: proxyDisponible.proxyid, // Asigna el proxy disponible al host
-            interfaces: [
-              {
-                type: 2,
-                main: 1,
-                useip: 1,
-                ip: ipAddres,
-                dns: '',
-                port: '161',
-                details: {
-                  version: 2,
-                  bulk: 0,
-                  community: '{$SNMP_COMMUNITY}',
+        console.log(comunidad);
+      });
+    }
+
+    // Obtiene los datos del archivo JSON usando fetch
+    function obtenerDatos() {
+      return fetch(info).then((response) => response.json());
+    }
+
+    if (btnCrear) {
+      btnCrear.addEventListener("click", async function () {
+        event.preventDefault();
+        const proxyDisponible = await obtenerProxyDisponible();
+
+        if (proxyDisponible) {
+          guardarTemplateId();
+          guardarTemplate();
+
+          const hostName = selectHost.value;
+          const ipAddres = selectIp.value;
+          const comunidad = selectComunidad.value;
+
+          const hostCreate = {
+            jsonrpc: "2.0",
+            method: "host.create",
+            params: {
+              host: hostName,
+              inventory_mode: 1,
+              status: 0,
+              proxy_hostid: proxyDisponible.proxyid, // Asigna el proxy disponible al host
+              interfaces: [
+                {
+                  type: 2,
+                  main: 1,
+                  useip: 1,
+                  ip: ipAddres,
+                  dns: "",
+                  port: "161",
+                  details: {
+                    version: 2,
+                    bulk: 0,
+                    community: "{$SNMP_COMMUNITY}",
+                  },
                 },
+              ],
+              groups: [
+                {
+                  groupid: "51",
+                },
+              ],
+              templates: [
+                {
+                  templateid: selectedTemplateId,
+                },
+              ],
+              macros: [
+                {
+                  macro: "{$HOST.TYPE}",
+                  value: "Cliente",
+                },
+                {
+                  macro: "{$SNMP_COMMUNITY}",
+                  value: comunidad,
+                },
+              ],
+              inventory: {
+                site_city: selectedMunicipio,
+                site_state: selectedDepartamento,
+                location_lat: selectedLatitud,
+                location_lon: selectedLongitud,
               },
-            ],
-            groups: [
-              {
-                groupid: '51',
-              },
-            ],
-            templates: [
-              {
-                templateid: selectedTemplateId,
-              },
-            ],
-            macros: [
-              {
-                macro: '{$HOST.TYPE}',
-                value: 'Cliente',
-              },
-              {
-                macro: '{$SNMP_COMMUNITY}',
-                value: comunidad,
-              },
-            ],
-            inventory: {
-              site_city: selectedMunicipio,
-              site_state: selectedDepartamento,
-              location_lat: selectedLatitud,
-              location_lon: selectedLongitud
             },
-          },
-          auth: authToken,
-          id: 1,
-        };
-    
-        console.log(hostCreate);
-    
-        // Realiza la solicitud POST a la API de Zabbix
-        fetch(authURL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(hostCreate),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            // Maneja la respuesta de la API aquí
-            console.log('Respuesta de la API de Zabbix:', data);
-            formulario.reset();
+            auth: authToken,
+            id: 1,
+          };
+
+          console.log(hostCreate);
+
+          // Realiza la solicitud POST a la API de Zabbix
+          fetch(authURL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(hostCreate),
           })
-          .catch((error) => {
-            // Maneja los errores aquí
-            console.error('Error en la solicitud a la API de Zabbix:', error);
-          });
-      }
-    });
-
-  }
-
-  
- 
-
+            .then((response) => response.json())
+            .then((data) => {
+              // Maneja la respuesta de la API aquí
+              console.log("Respuesta de la API de Zabbix:", data);
+              formulario.reset();
+            })
+            .catch((error) => {
+              // Maneja los errores aquí
+              console.error("Error en la solicitud a la API de Zabbix:", error);
+            });
+        }
+      });
+    }
 
     obtenerTemplates();
     checkLoggedIn();
-   
-  
-
   }
-
-  
 });
-
-// Obtiene los datos del archivo JSON usando fetch
-function obtenerDatos() {
-  return fetch(info).then((response) => response.json());
-}
 
 // Llena el select de departamentos con las opciones correspondientes
 function llenarDepartamentos() {
@@ -263,11 +240,9 @@ function soloNumeros() {
 function guardarLatitudLongitud() {
   // Obtenemos el valor seleccionado en el campo de departamento
   const departamento = selectDepartamento.value;
-  
-  
+
   // Obtenemos el valor seleccionado en el campo de municipio
   const municipio = selectMunicipio.value;
-  
 
   selectedDepartamento = departamento;
   selectedMunicipio = municipio;
@@ -299,74 +274,70 @@ function guardarLatitudLongitud() {
   }
 }
 
-
 // Función para obtener los templates disponibles
 async function obtenerTemplates() {
   try {
     const response = await fetch(authURL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        "jsonrpc": "2.0",
-        "method": "template.get",
-        "params": {
-          "output": ["host","templateid"],
-          "groupids": "9"
+        jsonrpc: "2.0",
+        method: "template.get",
+        params: {
+          output: ["host", "templateid"],
+          groupids: "9",
         },
-        "auth": authToken,
-        "id": 1
-      })
+        auth: authToken,
+        id: 1,
+      }),
     });
 
     if (response.ok) {
       const data = await response.json();
-      const selectElement = document.getElementById('template');
+      const selectElement = document.getElementById("template");
 
       // Verifica si 'data.result' es un array antes de iterar
       if (Array.isArray(data.result)) {
         // Recorre los objetos de "result" y crea opciones en el select
-        data.result.forEach(obj => {
-          const option = document.createElement('option');
+        data.result.forEach((obj) => {
+          const option = document.createElement("option");
           option.value = obj.templateid; // Valor que se enviará cuando se seleccione la opción (templateid)
           option.textContent = obj.host; // Texto visible para el usuario (nombre del host)
           selectElement.appendChild(option);
         });
       } else {
-        console.error('La respuesta de la API no contiene un array de resultados:', data);
+        console.error(
+          "La respuesta de la API no contiene un array de resultados:",
+          data
+        );
       }
     } else {
-      console.error('Error al obtener los datos:', response.statusText);
+      console.error("Error al obtener los datos:", response.statusText);
     }
   } catch (error) {
-    console.error('Error en la solicitud a la API de Zabbix:', error);
+    console.error("Error en la solicitud a la API de Zabbix:", error);
   }
 }
 
-
-
-
 function guardarTemplate() {
-    
   const selectedValue = selectElement.value;
-  console.log('Valor seleccionado:', selectedValue);
+  console.log("Valor seleccionado:", selectedValue);
 }
-
 
 function guardarTemplateId() {
   const selectedOption = selectElement.selectedOptions[0];
   selectedTemplateId = selectedOption.value;
-  console.log('templateid seleccionado:', selectedTemplateId);
+  console.log("templateid seleccionado:", selectedTemplateId);
 }
-
 
 // Función para realizar el inicio de sesión
 async function login() {
   event.preventDefault(); // Evita que el formulario se envíe automáticamente
 
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
 
   const params = {
     username: username,
@@ -375,13 +346,13 @@ async function login() {
 
   try {
     const response = await fetch(authURL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'user.login',
+        jsonrpc: "2.0",
+        method: "user.login",
         params: params,
         id: 1,
       }),
@@ -392,18 +363,18 @@ async function login() {
       authToken = data.result;
 
       // Almacenar el token en el almacenamiento local
-      localStorage.setItem('authToken', authToken);
+      localStorage.setItem("authToken", authToken);
 
-      console.log('Inicio de sesión exitoso.');
-      console.log('Token de autenticación:', authToken);
+      console.log("Inicio de sesión exitoso.");
+      console.log("Token de autenticación:", authToken);
 
       // Redirigir a la página principal después del inicio de sesión
-      window.location.href = 'main.html';
+      window.location.href = "main.html";
     } else {
-      console.error('Error al iniciar sesión:', response.statusText);
+      console.error("Error al iniciar sesión:", response.statusText);
     }
   } catch (error) {
-    console.error('Error al realizar la solicitud:', error);
+    console.error("Error al realizar la solicitud:", error);
   }
 }
 
@@ -412,13 +383,13 @@ async function logout() {
   if (authToken) {
     try {
       const response = await fetch(authURL, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'user.logout',
+          jsonrpc: "2.0",
+          method: "user.logout",
           params: [],
           id: 1,
           auth: authToken,
@@ -427,19 +398,19 @@ async function logout() {
 
       if (response.ok) {
         // Eliminar el token del almacenamiento local
-        localStorage.removeItem('authToken');
+        localStorage.removeItem("authToken");
         authToken = null; // Establecer el token como nulo
-        console.log('Cierre de sesión exitoso.');
+        console.log("Cierre de sesión exitoso.");
         // Redirigir a la página de inicio de sesión
-        window.location.href = 'index.html';
+        window.location.href = "index.html";
       } else {
-        console.error('Error al cerrar sesión.');
+        console.error("Error al cerrar sesión.");
       }
     } catch (error) {
-      console.error('Error al realizar la solicitud:', error);
+      console.error("Error al realizar la solicitud:", error);
     }
   } else {
-    console.log('No hay sesión activa para cerrar.');
+    console.log("No hay sesión activa para cerrar.");
   }
 }
 
@@ -447,13 +418,13 @@ async function logout() {
 async function checkSession(sessionId) {
   try {
     const response = await fetch(authURL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'user.checkAuthentication',
+        jsonrpc: "2.0",
+        method: "user.checkAuthentication",
         params: {
           sessionid: sessionId,
         },
@@ -463,50 +434,47 @@ async function checkSession(sessionId) {
 
     if (response.ok) {
       const data = await response.json();
-      console.log('Sesión válida:', data.result);
+      console.log("Sesión válida:", data.result);
       return true;
     } else {
-      console.error('Sesión no válida.');
+      console.error("Sesión no válida.");
       return false;
     }
   } catch (error) {
-    console.error('Error al verificar la sesión:', error);
+    console.error("Error al verificar la sesión:", error);
     return false;
   }
 }
 
-
 // Esta función verificará si el usuario ha iniciado sesión
 async function checkLoggedIn() {
-  const storedToken = localStorage.getItem('authToken');
+  const storedToken = localStorage.getItem("authToken");
   if (!storedToken) {
     // Si no hay un token almacenado, redirigir a la página de inicio de sesión
-    window.location.href = 'index.html';
+    window.location.href = "index.html";
   } else {
     // Si hay un token almacenado, verificar si la sesión es válida
     const sessionValid = await checkSession(storedToken);
     if (!sessionValid) {
       // Si la sesión no es válida, redirigir a la página de inicio de sesión
-      window.location.href = 'index.html';
+      window.location.href = "index.html";
     }
   }
 }
 
-
-
 async function obtenerProxyDisponible() {
   try {
     const response = await fetch(authURL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'proxy.get',
+        jsonrpc: "2.0",
+        method: "proxy.get",
         params: {
-          output: 'extend',
-          selectHosts: 'count',
+          output: "extend",
+          selectHosts: "count",
         },
         auth: authToken,
         id: 1,
@@ -517,36 +485,41 @@ async function obtenerProxyDisponible() {
       const data = await response.json();
 
       if (!data.result || data.result.length === 0) {
-        console.error('No se encontraron proxies disponibles.');
+        console.error("No se encontraron proxies disponibles.");
         return null;
       }
-      
+
       // Filtra los proxies para encontrar el que tiene la menor cantidad de hosts y no es el proxy 6
-      const proxiesDisponibles = data.result.filter(proxy => proxy.proxyid !== '10427');
-      console.log('Proxies disponibles:', proxiesDisponibles);
+      const proxiesDisponibles = data.result.filter(
+        (proxy) => proxy.proxyid !== "10427"
+      );
+      console.log("Proxies disponibles:", proxiesDisponibles);
       if (proxiesDisponibles.length === 0) {
-        console.error('No hay proxies disponibles que no sean el proxy 6.');
+        console.error("No hay proxies disponibles que no sean el proxy 6.");
         return null;
       }
 
       // Ordena los proxies por la cantidad de hosts de manera ascendente
-      proxiesDisponibles.sort((a, b) => (a.hosts || []).length - (b.hosts || []).length);
+      proxiesDisponibles.sort(
+        (a, b) => (a.hosts || []).length - (b.hosts || []).length
+      );
 
       // Elige aleatoriamente uno de los proxies con menos hosts
-      const proxyAleatorio = proxiesDisponibles[Math.floor(Math.random() * proxiesDisponibles.length)];
+      const proxyAleatorio =
+        proxiesDisponibles[
+          Math.floor(Math.random() * proxiesDisponibles.length)
+        ];
 
       return proxyAleatorio;
-
     } else {
-      console.error('Error al obtener los datos de los proxies:', response.statusText);
+      console.error(
+        "Error al obtener los datos de los proxies:",
+        response.statusText
+      );
       return null;
     }
   } catch (error) {
-    console.error('Error en la solicitud a la API de Zabbix:', error);
+    console.error("Error en la solicitud a la API de Zabbix:", error);
     return null;
   }
 }
-
-
-
-
