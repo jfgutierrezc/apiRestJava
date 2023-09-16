@@ -8,6 +8,7 @@ const selectIp = document.getElementById("ip");
 const selectHost = document.getElementById("host");
 const selectComunidad = document.getElementById("macros");
 const formulario = document.getElementById("mainForm");
+const formularioLogin = document.getElementById("formLogin");
 
 let departamentos = [];
 let data;
@@ -374,6 +375,8 @@ async function login() {
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
+        formularioLogin.reset();
+
       }
     } else {
       console.error("Error al iniciar sesión:", response.statusText);
