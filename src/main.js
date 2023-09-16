@@ -360,16 +360,21 @@ async function login() {
 
     if (response.ok) {
       const data = await response.json();
-      authToken = data.result;
+      if (data.result !== undefined) {
+        authToken = data.result;
 
-      // Almacenar el token en el almacenamiento local
-      localStorage.setItem("authToken", authToken);
+        // Almacenar el token en el almacenamiento local
+        localStorage.setItem("authToken", authToken);
 
-      console.log("Inicio de sesión exitoso.");
-      console.log("Token de autenticación:", authToken);
+        console.log("Inicio de sesión exitoso.");
+        console.log("Token de autenticación:", authToken);
 
-      // Redirigir a la página principal después del inicio de sesión
-      window.location.href = "main.html";
+        // Redirigir a la página principal después del inicio de sesión
+        window.location.href = "main.html";
+      } else {
+        // Mostrar una alerta de usuario o contraseña incorrecta
+        alert("Usuario o contraseña incorrecta.");
+      }
     } else {
       console.error("Error al iniciar sesión:", response.statusText);
     }
