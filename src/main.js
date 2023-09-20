@@ -20,7 +20,7 @@ const btnActualizar = document.getElementById("botonActualizar");
 let departamentos = [];
 let data;
 let municipios = [];
-const info = "../data/colombia.json";
+const info = "data/colombia.json";
 let selectedLatitud = "";
 let selectedLongitud = "";
 const authURL = "http://10.144.2.160/zabbix/api_jsonrpc.php";
