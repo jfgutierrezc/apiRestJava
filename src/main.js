@@ -15,6 +15,8 @@ const itemMacro = document.getElementById("itemInterface");
 const itemTiempo = document.getElementById("tiempo");
 const btnActualizar = document.getElementById("botonActualizar");
 
+
+
 let departamentos = [];
 let data;
 let municipios = [];
@@ -194,6 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     obtenerTemplates();
     checkLoggedIn();
+
   } else if (currentPath.includes("formMacroGraph.html")) {
     // Asignar la función para capturar el ítem seleccionado de la lista desplegable
     document
@@ -517,7 +520,7 @@ async function login() {
         console.log("Token de autenticación:", authToken);
 
         // Redirigir a la página principal después del inicio de sesión
-        window.location.href = "main.html";
+       window.location.href = "main.html";
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
@@ -731,3 +734,9 @@ async function llenarListaDesplegable() {
     console.error("Error en la solicitud:", error);
   }
 }
+
+
+
+
+
+
