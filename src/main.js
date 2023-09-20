@@ -9,6 +9,11 @@ const selectHost = document.getElementById("host");
 const selectComunidad = document.getElementById("macros");
 const formulario = document.getElementById("mainForm");
 const formularioLogin = document.getElementById("formLogin");
+const formMacro = document.getElementById("formMacroGraph");
+const hostMacro = document.getElementById("host");
+const itemMacro = document.getElementById("itemInterface");
+const itemTiempo = document.getElementById("tiempo");
+const btnActualizar = document.getElementById("botonActualizar");
 
 let departamentos = [];
 let data;
@@ -24,6 +29,10 @@ let ipAddres = ""; // Variable global para la dirección IP
 let comunidad = ""; // Variable global para la comunidad SNMP
 let authToken = null;
 let selectedTemplateId = "";
+let selectedHost = "";
+let selectedItem = "";
+let selectedMacro = "";
+let selectedTiempo = "";
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
@@ -37,7 +46,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("No se encontró una sesión activa.");
   }
 
-  if (window.location.pathname.includes("main.html")) {
+  const currentPath = window.location.pathname;
+
+  if (currentPath.includes("main.html")) {
     // Obtiene los datos del archivo JSON usando la función obtenerDatos()
     data = await obtenerDatos();
     // Crea una lista de nombres de departamentos extrayendo "departamento" de cada dato en "data"
@@ -140,6 +151,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                   macro: "{$SNMP_COMMUNITY}",
                   value: comunidad,
                 },
+                {
+                  macro: "{$NET.IF.IFALIAS.MATCHES8}",
+                  value: "\\S+",
+                },
               ],
               inventory: {
                 site_city: selectedMunicipio,
@@ -166,6 +181,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             .then((data) => {
               // Maneja la respuesta de la API aquí
               console.log("Respuesta de la API de Zabbix:", data);
+              alert("Host creado exitosamente.");
               formulario.reset();
             })
             .catch((error) => {
@@ -178,6 +194,136 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     obtenerTemplates();
     checkLoggedIn();
+  } else if (currentPath.includes("formMacroGraph.html")) {
+    // Asignar la función para capturar el ítem seleccionado de la lista desplegable
+    document
+      .getElementById("itemInterface")
+      .addEventListener("change", function () {
+        selectedItem = this.value;
+
+        console.log("Valor seleccionado (Host):", selectedHost);
+        console.log("Valor seleccionado (Item):", selectedItem);
+      });
+
+    // Asignar la función llenarListaDesplegable al evento onchange del campo host
+    document
+      .getElementById("host")
+      .addEventListener("change", llenarListaDesplegable);
+
+    // Llamar a la función para llenar la lista desplegable al cargar la página
+    llenarListaDesplegable();
+
+    // Función para obtener el hostid a partir del nombre del host
+    async function obtenerHostIdPorNombre(nombreHost) {
+      try {
+        const response = await fetch(authURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "host.get",
+            params: {
+              output: ["hostid"],
+              filter: {
+                host: [nombreHost], // Nombre del host
+              },
+            },
+            auth: authToken,
+            id: 1,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.result && data.result.length > 0) {
+            // Devuelve el hostid del primer resultado (asumiendo que no hay duplicados)
+            return data.result[0].hostid;
+          } else {
+            console.error("No se encontró el host con el nombre:", nombreHost);
+            return null;
+          }
+        } else {
+          console.error(
+            "Error al obtener el host por nombre:",
+            response.statusText
+          );
+          return null;
+        }
+      } catch (error) {
+        console.error("Error en la solicitud a la API de Zabbix:", error);
+        return null;
+      }
+    }
+
+    // Agregar un evento para el botón de actualizar
+    if (btnActualizar) {
+      // Dentro del evento del botón de actualizar
+      btnActualizar.addEventListener("click", async function () {
+        event.preventDefault();
+
+        // Obtener el valor seleccionado del host y la macro
+        const hostSelected = selectedHost;
+        const selectedMacro = itemTiempo.value;
+
+        // Verificar si se ha seleccionado un host y una macro
+        if (!hostSelected || !selectedMacro) {
+          alert("Por favor, seleccione un host y una macro.");
+          return;
+        }
+
+        // Obtener el hostid a partir del nombre del host
+        const hostId = await obtenerHostIdPorNombre(hostSelected);
+
+        if (hostId) {
+          // Crear el objeto para la solicitud de creación de macro
+          const createMacroRequest = {
+            jsonrpc: "2.0",
+            method: "usermacro.create",
+            params: {
+              hostid: hostId, // El ID del host en el que se creará la macro
+              macro: `{$DELAY_IF:"${selectedItem}"}`, // El nombre de la macro que se creará
+              value: selectedMacro, // El valor de la nueva macro
+            },
+            auth: authToken,
+            id: 1,
+          };
+
+          // Realizar la solicitud POST a la API de Zabbix para crear la macro
+          try {
+            const response = await fetch(authURL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(createMacroRequest),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log("Respuesta de la API de Zabbix:", data);
+
+              // Si la creación fue exitosa, puedes realizar acciones adicionales aquí si es necesario
+
+              alert("Macro creada exitosamente.");
+
+              formMacro.reset();
+            } else {
+              console.error("Error al crear la macro:", response.statusText);
+              alert(
+                "Error al crear la macro. Por favor, inténtelo nuevamente."
+              );
+            }
+          } catch (error) {
+            console.error("Error en la solicitud a la API de Zabbix:", error);
+            alert(
+              "Error en la solicitud a la API de Zabbix. Por favor, inténtelo nuevamente."
+            );
+          }
+        }
+      });
+    }
   }
 });
 
@@ -376,7 +522,6 @@ async function login() {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
         formularioLogin.reset();
-
       }
     } else {
       console.error("Error al iniciar sesión:", response.statusText);
@@ -499,7 +644,7 @@ async function obtenerProxyDisponible() {
 
       // Filtra los proxies para encontrar el que tiene la menor cantidad de hosts y no es el proxy 6
       const proxiesDisponibles = data.result.filter(
-        (proxy) => proxy.proxyid !== "10427"
+        (proxy) => proxy.proxyid !== "10426"
       );
       console.log("Proxies disponibles:", proxiesDisponibles);
       if (proxiesDisponibles.length === 0) {
@@ -515,7 +660,7 @@ async function obtenerProxyDisponible() {
       // Elige aleatoriamente uno de los proxies con menos hosts
       const proxyAleatorio =
         proxiesDisponibles[
-          Math.floor(Math.random() * proxiesDisponibles.length)
+        Math.floor(Math.random() * proxiesDisponibles.length)
         ];
 
       return proxyAleatorio;
@@ -532,5 +677,57 @@ async function obtenerProxyDisponible() {
   }
 }
 
+// Función asincrónica para llenar la lista desplegable
+async function llenarListaDesplegable() {
+  try {
+    // Obtener el elemento select
+    var selectElement = document.getElementById("itemInterface");
 
+    // Datos de la solicitud JSON-RPC
+    var jsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "item.get",
+      params: {
+        output: "extend",
+        host: document.getElementById("host").value,
+        search: {
+          key_: "net.if.alias",
+        },
+      },
+      auth: "d5aef56bf650141b17ee54a7f1e51bdc",
+      id: 1,
+    };
 
+    // Realizar la solicitud HTTP a la API de Zabbix y esperar la respuesta
+    const response = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonRpcRequest),
+    });
+
+    // Procesar la respuesta como JSON
+    const data = await response.json();
+
+    // Deshabilitar la opción predeterminada
+    selectElement.querySelector('option[value=""]').disabled = true;
+
+    data.result.forEach(function (item) {
+      var option = document.createElement("option");
+
+      // Procesar el nombre para eliminar "Interface", lo que está entre paréntesis y ": Alias"
+      var processedName = item.name.replace(/^Interface |\(.*\)|: Alias$/g, "");
+
+      option.value = processedName; // Usar processedName en lugar de item.key_
+      option.text = processedName;
+      selectElement.appendChild(option);
+    });
+
+    // Guardar el valor seleccionado en las variables
+    selectedHost = document.getElementById("host").value;
+    selectedItem = selectElement.value; // Usar selectElement.value para capturar el valor seleccionado
+  } catch (error) {
+    console.error("Error en la solicitud:", error);
+  }
+}
