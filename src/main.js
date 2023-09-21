@@ -129,11 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         event.preventDefault();
         const proxyDisponible = await obtenerProxyDisponible();
 
-        // Validar que los campos no estén vacíos
-        if (!selectHost.value || !selectIp.value || !selectComunidad.value) {
-          alert("Por favor, complete todos los campos.");
-          return;
-        }
+        
 
         if (proxyDisponible) {
           guardarTemplateId();
@@ -673,6 +669,17 @@ async function checkLoggedIn() {
 }
 
 async function obtenerProxyDisponible() {
+
+  const hostValue = selectHost.value;
+  const ipValue = selectIp.value;
+  const comunidadValue = selectComunidad.value;
+
+  if (!hostValue || !ipValue || !comunidadValue || !selectedTemplateId || !selectedDepartamento || !selectedMunicipio) {
+    alert("Por favor, complete todos los campos del formulario.");
+    return null;
+  }
+
+  
   try {
     const response = await fetch(authURL, {
       method: "POST",
