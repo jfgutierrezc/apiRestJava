@@ -20,7 +20,7 @@ const btnActualizar = document.getElementById("botonActualizar");
 let departamentos = [];
 let data;
 let municipios = [];
-const info = "../data/colombia.json";
+const info = "data/colombia.json";
 let selectedLatitud = "";
 let selectedLongitud = "";
 const authURL = "http://10.144.2.160/zabbix/api_jsonrpc.php";
@@ -39,17 +39,33 @@ let selectedTiempo = "";
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
   const storedToken = localStorage.getItem("authToken");
+  const currentPath = window.location.pathname;
   if (storedToken) {
     // Si hay un token almacenado, establecerlo como authToken
     authToken = storedToken;
 
     console.log("Sesión activa encontrada con token:", authToken);
-  } else {
-    console.log("No se encontró una sesión activa.");
+   // Verificar si el usuario está tratando de acceder a "index.html" manualmente
+   if (currentPath.includes("index.html")) {
+    // Determina la página a la que debe redirigirse (puedes usar "main.html" o "formMacroGraph.html" según tu lógica)
+    const redirectTo = "main.html";
+    window.location.href = redirectTo;
   }
+} else {
+  console.log("No se encontró una sesión activa.");
+  
+  // Verificar si el usuario está tratando de acceder a "main.html" manualmente
+  if (currentPath.includes("main.html")) {
+    // Si el usuario no está logueado, redirigir a la página de inicio de sesión
+    window.location.href = "index.html";
+  }
+}
 
-  const currentPath = window.location.pathname;
 
+  
+
+
+  
   if (currentPath.includes("main.html")) {
     // Obtiene los datos del archivo JSON usando la función obtenerDatos()
     data = await obtenerDatos();
@@ -95,13 +111,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Obtiene los datos del archivo JSON usando fetch
     function obtenerDatos() {
-      return fetch(info).then((response) => response.json());
+      return fetch(info)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Error de conexión");
+          }
+        })
+        .catch((error) => {
+          console.log("Error en la conexión: " + error);
+        });
     }
 
     if (btnCrear) {
-      btnCrear.addEventListener("click", async function () {
+      btnCrear.addEventListener("click", async function (event) {
         event.preventDefault();
         const proxyDisponible = await obtenerProxyDisponible();
+
+        // Validar que los campos no estén vacíos
+        if (!selectHost.value || !selectIp.value || !selectComunidad.value) {
+          alert("Por favor, complete todos los campos.");
+          return;
+        }
 
         if (proxyDisponible) {
           guardarTemplateId();
@@ -217,48 +249,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     llenarListaDesplegable();
 
     // Función para obtener el hostid a partir del nombre del host
-    async function obtenerHostIdPorNombre(nombreHost) {
-      try {
-        const response = await fetch(authURL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            method: "host.get",
-            params: {
-              output: ["hostid"],
-              filter: {
-                host: [nombreHost], // Nombre del host
-              },
+   const obtenerHostIdPorNombre = async (nombreHost) => {
+      const response = await fetch(authURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "host.get",
+          params: {
+            output: ["hostid"],
+            filter: {
+              host: [nombreHost], // Nombre del host
             },
-            auth: authToken,
-            id: 1,
-          }),
-        });
+          },
+          auth: authToken,
+          id: 1,
+        }),
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.result && data.result.length > 0) {
-            // Devuelve el hostid del primer resultado (asumiendo que no hay duplicados)
-            return data.result[0].hostid;
-          } else {
-            console.error("No se encontró el host con el nombre:", nombreHost);
-            return null;
-          }
-        } else {
-          console.error(
-            "Error al obtener el host por nombre:",
-            response.statusText
-          );
-          return null;
-        }
-      } catch (error) {
-        console.error("Error en la solicitud a la API de Zabbix:", error);
-        return null;
+      if (!response.ok) {
+        throw new Error(
+          `Error al obtener el host por nombre: ${response.statusText}`
+        );
       }
-    }
+
+      const data = await response.json();
+      if (data.result && data.result.length > 0) {
+        // Devuelve el hostid del primer resultado (asumiendo que no hay duplicados)
+        return data.result[0].hostid;
+      } else {
+        throw new Error("No se encontró el host con el nombre:", nombreHost);
+      }
+    };
+
 
     // Agregar un evento para el botón de actualizar
     if (btnActualizar) {
@@ -272,7 +297,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Verificar si se ha seleccionado un host y una macro
         if (!hostSelected || !selectedMacro) {
-          alert("Por favor, seleccione un host y una macro.");
+          alert("Por favor, complete los datos.");
           return;
         }
 
@@ -341,8 +366,15 @@ function llenarDepartamentos() {
           `<option value="${departamento}">${departamento}</option>`
       )
       .join(""); // Combina las opciones en una cadena para insertarlas en el select
-}
 
+  // Muestra un mensaje de error si hay un error al obtener los departamentos
+  if (departamentos.length === 0) {
+    const error = document.createElement("p");
+    error.classList.add("error");
+    error.textContent = "Error al obtener los departamentos";
+    selectDepartamento.parentNode.insertBefore(error, selectDepartamento);
+  }
+}
 // Obtiene los municipios correspondientes al departamento seleccionado
 function obtenerMunicipios(event) {
   const departamento = event.target.value;
@@ -363,6 +395,7 @@ function llenarMunicipios() {
       .join(""); // Combina las opciones en una cadena para insertarlas en el select
 }
 
+
 // Valida el formato de una dirección IP
 function validaIp(ip) {
   const object = document.getElementById(ip);
@@ -381,7 +414,8 @@ function validaIp(ip) {
 
 // Permite ingresar solo números y el punto en un campo de entrada
 function soloNumeros() {
-  if ((event.keyCode !== 46 && event.keyCode < 48) || event.keyCode > 57) {
+  let keyCode = event.keyCode;
+  if (keyCode !== 46 && (keyCode < 48 || keyCode > 57)) {
     event.returnValue = false; // Evita que el evento de entrada se propague
   }
 }
@@ -397,8 +431,6 @@ function guardarLatitudLongitud() {
   selectedDepartamento = departamento;
   selectedMunicipio = municipio;
 
-  console.log(selectedDepartamento);
-  console.log(selectedMunicipio);
   // Buscamos en los datos del JSON una entrada que coincida con el departamento y municipio seleccionados
   const seleccion = data.find((dato) => dato.departamento === departamento);
   // Si encontramos una selección válida
@@ -424,7 +456,7 @@ function guardarLatitudLongitud() {
   }
 }
 
-// Función para obtener los templates disponibles
+// Código de la función obtenerTemplates() mejorado
 async function obtenerTemplates() {
   try {
     const response = await fetch(authURL, {
@@ -471,15 +503,24 @@ async function obtenerTemplates() {
   }
 }
 
+
 function guardarTemplate() {
   const selectedValue = selectElement.value;
-  console.log("Valor seleccionado:", selectedValue);
+  if (selectedValue) {
+    console.log("Valor seleccionado:", selectedValue);
+  } else {
+    console.log("No se ha seleccionado ningún valor");
+  }
 }
 
 function guardarTemplateId() {
   const selectedOption = selectElement.selectedOptions[0];
-  selectedTemplateId = selectedOption.value;
-  console.log("templateid seleccionado:", selectedTemplateId);
+  if (selectedOption) {
+    selectedTemplateId = selectedOption.value;
+    console.log("templateid seleccionado:", selectedTemplateId);
+  } else {
+    console.error("No se ha seleccionado ningún template");
+  }
 }
 
 // Función para realizar el inicio de sesión
@@ -538,6 +579,7 @@ async function login() {
 async function logout() {
   if (authToken) {
     try {
+      // Realizar la solicitud de cierre de sesión
       const response = await fetch(authURL, {
         method: "POST",
         headers: {
@@ -552,16 +594,18 @@ async function logout() {
         }),
       });
 
-      if (response.ok) {
-        // Eliminar el token del almacenamiento local
-        localStorage.removeItem("authToken");
-        authToken = null; // Establecer el token como nulo
-        console.log("Cierre de sesión exitoso.");
-        // Redirigir a la página de inicio de sesión
-        window.location.href = "index.html";
-      } else {
-        console.error("Error al cerrar sesión.");
+      // Comprobar si la solicitud se realizó correctamente
+      if (!response.ok) {
+        throw new Error("Error al cerrar sesión.");
       }
+
+      // Eliminar el token del almacenamiento local
+      localStorage.removeItem("authToken");
+      // Establecer el token como nulo
+      authToken = null;
+      console.log("Cierre de sesión exitoso.");
+      // Redirigir a la página de inicio de sesión
+      window.location.href = "index.html";
     } catch (error) {
       console.error("Error al realizar la solicitud:", error);
     }
@@ -590,8 +634,13 @@ async function checkSession(sessionId) {
 
     if (response.ok) {
       const data = await response.json();
-      console.log("Sesión válida:", data.result);
-      return true;
+      if (data.result) {
+        console.log("Sesión válida:", data.result);
+        return true;
+      } else {
+        console.error("Sesión no válida.");
+        return false;
+      }
     } else {
       console.error("Sesión no válida.");
       return false;
@@ -608,13 +657,18 @@ async function checkLoggedIn() {
   if (!storedToken) {
     // Si no hay un token almacenado, redirigir a la página de inicio de sesión
     window.location.href = "index.html";
-  } else {
-    // Si hay un token almacenado, verificar si la sesión es válida
+    return;
+  }
+  // Si hay un token almacenado, verificar si la sesión es válida
+  try {
     const sessionValid = await checkSession(storedToken);
     if (!sessionValid) {
       // Si la sesión no es válida, redirigir a la página de inicio de sesión
       window.location.href = "index.html";
     }
+  } catch (error) {
+    // Si hay un error, redirigir a la página de inicio de sesión
+    window.location.href = "index.html";
   }
 }
 
@@ -697,7 +751,7 @@ async function llenarListaDesplegable() {
           key_: "net.if.alias",
         },
       },
-      auth: "d5aef56bf650141b17ee54a7f1e51bdc",
+      auth: authToken,
       id: 1,
     };
 
