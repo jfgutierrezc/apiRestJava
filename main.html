@@ -10,6 +10,32 @@
       rel="stylesheet"
     />
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      let inactivityTimeout;
+    
+      function resetInactivityTimer() {
+        clearInterval(inactivityTimeout); // Limpiar el temporizador anterior
+        inactivityTimeout = setInterval(function () {
+          // Redirige al usuario a "index.html" después de 5 segundos de inactividad
+          window.location.href = '/';
+        }, 35000); // 35 segundos de inactividad
+      }
+    
+      // Registra actividad del usuario en eventos como clics, teclas pulsadas, etc.
+      document.addEventListener('click', resetInactivityTimer);
+      document.addEventListener('keydown', resetInactivityTimer);
+    
+      // Inicia el temporizador de inactividad al cargar la página
+      resetInactivityTimer();
+
+      // Maneja el evento de cierre de ventana
+      window.addEventListener('beforeunload', function (e) {
+        // Redirige al usuario a "index.html" si la ventana se cierra
+        window.location.href = '/';
+      });
+    </script>
+
   </head>
 
   <body class="bg-gray-950">
@@ -169,7 +195,7 @@
           </div>
 
           <div class="flex justify-right">
-            <a href="#" class="text-blue-500 hover:text-red-500" id="logout" onclick="logout()"
+            <a href="#" class="text-blue-500 hover:text-red-600" id="logout" onclick="logout()"
               >Cerrar Sesión</a
             >
           </div>
