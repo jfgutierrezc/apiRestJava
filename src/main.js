@@ -519,6 +519,7 @@ function guardarTemplateId() {
   }
 }
 
+
 // Función para realizar el inicio de sesión
 async function login() {
   event.preventDefault(); // Evita que el formulario se envíe automáticamente
@@ -527,7 +528,7 @@ async function login() {
   const password = document.getElementById("password").value;
 
   const params = {
-    username: username,
+    user: username,
     password: password,
   };
 
@@ -556,8 +557,22 @@ async function login() {
         console.log("Inicio de sesión exitoso.");
         console.log("Token de autenticación:", authToken);
 
-        // Redirigir a la página principal después del inicio de sesión
-       window.location.href = "main.html";
+        // Verificar si el usuario pertenece a un grupo específico (grupo 25)
+        // o a otros grupos (por ejemplo, grupos 37 o 31)
+        const userGroups = await getUserGroups(username);      
+
+        if (userGroups.includes("14")) {
+          window.location.href = "main.html";
+        } else if (userGroups.includes("25")) {
+          // El usuario pertenece al grupo 25, redirigir a main.html
+          window.location.href = "main.html";
+        } else if (userGroups.includes("37") || userGroups.includes("31")) {
+          // El usuario pertenece a los grupos 37 o 31, redirigir a formMacroGraph.html
+          window.location.href = "formMacroGraph.html";
+        } else {
+          // El usuario no pertenece a ninguno de los grupos especificados
+          alert("El usuario ingresado no pertenece a ninguno de los Hostgroups disponibles.");
+        }
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
@@ -570,6 +585,55 @@ async function login() {
     console.error("Error al realizar la solicitud:", error);
   }
 }
+
+async function getUserGroups(username) {
+  try {
+    const response = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "user.get",
+        params: {
+          output: "extend",
+          selectGroups: "extend",
+          filter: {
+            alias: username,
+          },
+        },
+        auth: authToken,
+        id: 1,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.result && data.result.length > 0) {
+        const user = data.result[0];
+        if (user.groups && user.groups.length > 0) {
+          const groupIds = user.groups.map((group) => group.groupid);
+          console.log("IDs de grupos del usuario:", groupIds);
+          return groupIds;
+        } else {
+          console.log("El usuario no tiene grupos asignados.");
+        }
+      } else {
+        console.log("No se encontró al usuario.");
+      }
+    } else {
+      console.log("Error al obtener los datos del usuario:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error al realizar la solicitud:", error);
+  }
+  return [];
+}
+
+
+
+
 
 // Función para cerrar sesión
 async function logout() {
@@ -795,6 +859,13 @@ async function llenarListaDesplegable() {
     console.error("Error en la solicitud:", error);
   }
 }
+
+
+
+
+
+
+
 
 
 
