@@ -749,6 +749,10 @@ async function llenarListaDesplegable() {
 
     // Datos de la solicitud JSON-RPC
     var jsonRpcRequest = {
+
+
+
+      
       jsonrpc: "2.0",
       method: "item.get",
       params: {
@@ -796,8 +800,65 @@ async function llenarListaDesplegable() {
   }
 }
 
+// Agregar un manejador de eventos al cambio en la lista desplegable
+document.getElementById("itemInterface").addEventListener("change", buscarItemIdsYKeysPorNombre);
 
+// Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
+async function buscarItemIdsYKeysPorNombre() {
+  try {
+    // Obtén el nombre del item seleccionado
+    const selectedItemName = document.getElementById("itemInterface").value;
 
+    // Verifica si se seleccionó un nombre de item
+    if (selectedItemName) {
+      // Datos de la solicitud JSON-RPC para buscar "item id" y "keys_" por nombre de item
+      const jsonRpcRequest = {
+        jsonrpc: "2.0",
+        method: "item.get",
+        params: {
+          output: ["itemids", "key_"],
+          host: selectedHost, // Utiliza el host seleccionado previamente
+          search: {
+            name: selectedItemName, // Busca por el nombre seleccionado
+          },
+        },
+        auth: authToken,
+        id: 1, // Puedes utilizar un ID diferente
+      };
+
+      // Realiza la solicitud HTTP a la API de Zabbix y espera la respuesta
+      const response = await fetch(authURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(jsonRpcRequest),
+      });
+
+      // Procesa la respuesta como JSON
+      const data = await response.json();
+
+      // Filtra solo los elementos con "keys_" específicas
+      const filteredItems = data.result.filter((item) =>
+        item.key_.startsWith("net.if.out[ifHCOutOctets.") ||
+        item.key_.startsWith("net.if.in[ifHCInOctets.")
+      );
+
+      // Verifica si se encontraron elementos después del filtrado
+      if (filteredItems.length > 0) {
+        const itemDetails = filteredItems.map((item) => ({
+          itemid: item.itemid,
+          key: item.key_,
+        }));
+        console.log("Elementos con keys específicas:", itemDetails);
+      } else {
+        console.log("No se encontraron elementos con las keys específicas.");
+      }
+    }
+  } catch (error) {
+    console.error("Error en la solicitud:", error);
+  }
+}
 
 
 
