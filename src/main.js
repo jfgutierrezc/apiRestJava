@@ -226,6 +226,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     checkLoggedIn();
 
   } else if (currentPath.includes("formMacroGraph.html")) {
+
+
+
+    // Agregar un manejador de eventos al cambio en la lista desplegable
+document.getElementById("itemInterface").addEventListener("change", buscarItemIdsYKeysPorNombre);
+
+
+
     // Asignar la función para capturar el ítem seleccionado de la lista desplegable
     document
       .getElementById("itemInterface")
@@ -800,8 +808,7 @@ async function llenarListaDesplegable() {
   }
 }
 
-// Agregar un manejador de eventos al cambio en la lista desplegable
-document.getElementById("itemInterface").addEventListener("change", buscarItemIdsYKeysPorNombre);
+
 
 // Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
 async function buscarItemIdsYKeysPorNombre() {
@@ -872,6 +879,7 @@ const nombresDeItems = {
 };
 
 // Función para obtener datos históricos de Zabbix utilizando history.get
+// Función para obtener datos históricos de Zabbix utilizando history.get
 async function obtenerDatosHistoricos(itemDetails) {
   const datosHistoricos = [];
 
@@ -929,12 +937,23 @@ function convertirDatosHistoricos(datos) {
   }));
 }
 
-// Función para graficar datos históricos
+
+
+
+
+let myChart = null; // Variable para almacenar la instancia del gráfico.
+
 function graficarDatosHistoricos(datos) {
-  const colores = ['rgba(75, 192, 192, 1)', 'rgba(192, 75, 75, 1)', 'rgba(75, 75, 192, 1)', 'rgba(192, 192, 75, 1)'];
+  const colores = ['rgba(75, 192, 192, 1)', 'rgba(192, 75, 75, 1)', 'rgba(75, 75, 192, 1)', 'rgba(192, 192, 75, 1'];
+
+
+  const etiquetas = [
+    'Bits received',
+    'Bits sent',
+  ];
 
   const datasets = datos.map((dato, index) => ({
-    label: dato.key,
+    label: `${etiquetas[index]} - ${dato.key}`,  // Combinando etiquetas personalizadas y originales
     data: dato.values.map(value => ({
       x: value.timestamp,
       y: value.mbps,
@@ -945,23 +964,33 @@ function graficarDatosHistoricos(datos) {
 
   const ctx = document.getElementById('myChart').getContext('2d');
 
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      datasets: datasets,
-    },
-    options: {
-      scales: {
-        x: {
-          type: 'time',
-          time: {
-            unit: 'minute'
+  if (myChart) {
+    // Si ya existe una instancia de Chart, actualiza los datos en lugar de crear una nueva.
+    myChart.data.datasets = datasets;
+    myChart.update(); // Actualiza el gráfico con los nuevos datos.
+  } else {
+    myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: datasets,
+      },
+      options: {
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'minute'
+            }
+          },
+          y: {
+            beginAtZero: true
           }
-        },
-        y: {
-          beginAtZero: true
         }
       }
-    }
-  });
+    });
+  }
 }
+
+
+
+
