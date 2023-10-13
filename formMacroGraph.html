@@ -10,6 +10,12 @@
       rel="stylesheet"
     />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script> 
+   
+
+
+
   </head>
 
   <body class="bg-gray-950">
@@ -108,8 +114,16 @@
         <div class="mt-1"></div>
       </form>
     </div>
+
+
+     <!-- Canvas -->
+     <div class="w-full md:w-1/2 p-4">
+      <canvas id="myChart" class="w-full h-96"></canvas>
+    </div>
+    
   </body>
 
   <script src="./src/main.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
+  
 </html>

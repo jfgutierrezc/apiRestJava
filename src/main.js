@@ -851,6 +851,9 @@ async function buscarItemIdsYKeysPorNombre() {
           key: item.key_,
         }));
         console.log("Elementos con keys específicas:", itemDetails);
+
+        // Llama a la función obtenerDatosHistoricos con itemIds
+        obtenerDatosHistoricos(itemDetails);
       } else {
         console.log("No se encontraron elementos con las keys específicas.");
       }
@@ -861,4 +864,104 @@ async function buscarItemIdsYKeysPorNombre() {
 }
 
 
+// Objeto para mapear los itemids a sus nombres
+const nombresDeItems = {
+  'itemid1': 'Bits sent',
+  'itemid2': 'Bits received',
+  // Agrega más mapeos si es necesario
+};
 
+// Función para obtener datos históricos de Zabbix utilizando history.get
+async function obtenerDatosHistoricos(itemDetails) {
+  const datosHistoricos = [];
+
+  for (const item of itemDetails) {
+    
+    const jsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "history.get",
+      params: {
+        output: "extend",
+        history: 3,
+        itemids: item.itemid,
+        sortfield: "clock",
+        sortorder: "DESC",
+        limit: 60,
+      },
+      auth: authToken,
+      id: 2,
+    };
+
+    const response = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonRpcRequest),
+    });
+
+    const data = await response.json();
+
+    const datosConvertidos = convertirDatosHistoricos(data.result);
+
+    let etiqueta = selectedItem;
+    if (item.key_ === 'net.if.out[ifHCOutOctets') {
+      etiqueta += ' - Bits sent';
+    } else if (item.key_ === 'net.if.in[ifHCInOctets') {
+      etiqueta += ' - Bits received';
+    }
+
+    datosHistoricos.push({
+      key: etiqueta,
+      values: datosConvertidos,
+    });
+  }
+
+  graficarDatosHistoricos(datosHistoricos);
+}
+
+// Función para convertir datos históricos
+function convertirDatosHistoricos(datos) {
+  // Mapea los datos y realiza las conversiones necesarias
+  return datos.map((dato) => ({
+    timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp
+    mbps: dato.value / 1000, // Convierte "value" de kbps a Mbps
+  }));
+}
+
+// Función para graficar datos históricos
+function graficarDatosHistoricos(datos) {
+  const colores = ['rgba(75, 192, 192, 1)', 'rgba(192, 75, 75, 1)', 'rgba(75, 75, 192, 1)', 'rgba(192, 192, 75, 1)'];
+
+  const datasets = datos.map((dato, index) => ({
+    label: dato.key,
+    data: dato.values.map(value => ({
+      x: value.timestamp,
+      y: value.mbps,
+    })),
+    borderColor: colores[index % colores.length],
+    backgroundColor: colores[index % colores.length],
+  }));
+
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: datasets,
+    },
+    options: {
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'minute'
+          }
+        },
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
