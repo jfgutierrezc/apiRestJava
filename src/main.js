@@ -15,8 +15,6 @@ const itemMacro = document.getElementById("itemInterface");
 const itemTiempo = document.getElementById("tiempo");
 const btnActualizar = document.getElementById("botonActualizar");
 
-
-
 let departamentos = [];
 let data;
 let municipios = [];
@@ -35,6 +33,7 @@ let selectedHost = "";
 let selectedItem = "";
 let selectedMacro = "";
 let selectedTiempo = "";
+let myChart = null; // Variable para almacenar la instancia del gráfico.
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
@@ -45,27 +44,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     authToken = storedToken;
 
     console.log("Sesión activa encontrada con token:", authToken);
-   // Verificar si el usuario está tratando de acceder a "index.html" manualmente
-   if (currentPath.includes("index.html")) {
-    // Determina la página a la que debe redirigirse (puedes usar "main.html" o "formMacroGraph.html" según tu lógica)
-    const redirectTo = "main.html";
-    window.location.href = redirectTo;
+    // Verificar si el usuario está tratando de acceder a "index.html" manualmente
+    if (currentPath.includes("index.html")) {
+      // Determina la página a la que debe redirigirse (puedes usar "main.html" o "formMacroGraph.html" según tu lógica)
+      const redirectTo = "main.html";
+      window.location.href = redirectTo;
+    }
+  } else {
+    console.log("No se encontró una sesión activa.");
+
+    // Verificar si el usuario está tratando de acceder a "main.html" manualmente
+    if (currentPath.includes("main.html")) {
+      // Si el usuario no está logueado, redirigir a la página de inicio de sesión
+      window.location.href = "index.html";
+    }
   }
-} else {
-  console.log("No se encontró una sesión activa.");
-  
-  // Verificar si el usuario está tratando de acceder a "main.html" manualmente
-  if (currentPath.includes("main.html")) {
-    // Si el usuario no está logueado, redirigir a la página de inicio de sesión
-    window.location.href = "index.html";
-  }
-}
 
-
-  
-
-
-  
   if (currentPath.includes("main.html")) {
     // Obtiene los datos del archivo JSON usando la función obtenerDatos()
     data = await obtenerDatos();
@@ -128,8 +122,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       btnCrear.addEventListener("click", async function (event) {
         event.preventDefault();
         const proxyDisponible = await obtenerProxyDisponible();
-
-        
 
         if (proxyDisponible) {
           guardarTemplateId();
@@ -224,15 +216,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     obtenerTemplates();
     checkLoggedIn();
-
   } else if (currentPath.includes("formMacroGraph.html")) {
-
-
-
     // Agregar un manejador de eventos al cambio en la lista desplegable
-document.getElementById("itemInterface").addEventListener("change", buscarItemIdsYKeysPorNombre);
-
-
+    document
+      .getElementById("itemInterface")
+      .addEventListener("change", buscarItemIdsYKeysPorNombre);
 
     // Asignar la función para capturar el ítem seleccionado de la lista desplegable
     document
@@ -253,7 +241,7 @@ document.getElementById("itemInterface").addEventListener("change", buscarItemId
     llenarListaDesplegable();
 
     // Función para obtener el hostid a partir del nombre del host
-   const obtenerHostIdPorNombre = async (nombreHost) => {
+    const obtenerHostIdPorNombre = async (nombreHost) => {
       const response = await fetch(authURL, {
         method: "POST",
         headers: {
@@ -287,7 +275,6 @@ document.getElementById("itemInterface").addEventListener("change", buscarItemId
         throw new Error("No se encontró el host con el nombre:", nombreHost);
       }
     };
-
 
     // Agregar un evento para el botón de actualizar
     if (btnActualizar) {
@@ -355,6 +342,7 @@ document.getElementById("itemInterface").addEventListener("change", buscarItemId
           }
         }
       });
+
     }
   }
 });
@@ -398,7 +386,6 @@ function llenarMunicipios() {
       .map((nombre) => `<option value="${nombre}">${nombre}</option>`)
       .join(""); // Combina las opciones en una cadena para insertarlas en el select
 }
-
 
 // Valida el formato de una dirección IP
 function validaIp(ip) {
@@ -507,7 +494,6 @@ async function obtenerTemplates() {
   }
 }
 
-
 function guardarTemplate() {
   const selectedValue = selectElement.value;
   if (selectedValue) {
@@ -565,7 +551,7 @@ async function login() {
         console.log("Token de autenticación:", authToken);
 
         // Redirigir a la página principal después del inicio de sesión
-       window.location.href = "main.html";
+        window.location.href = "main.html";
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
@@ -677,17 +663,22 @@ async function checkLoggedIn() {
 }
 
 async function obtenerProxyDisponible() {
-
   const hostValue = selectHost.value;
   const ipValue = selectIp.value;
   const comunidadValue = selectComunidad.value;
 
-  if (!hostValue || !ipValue || !comunidadValue || !selectedTemplateId || !selectedDepartamento || !selectedMunicipio) {
+  if (
+    !hostValue ||
+    !ipValue ||
+    !comunidadValue ||
+    !selectedTemplateId ||
+    !selectedDepartamento ||
+    !selectedMunicipio
+  ) {
     alert("Por favor, complete todos los campos del formulario.");
     return null;
   }
 
-  
   try {
     const response = await fetch(authURL, {
       method: "POST",
@@ -732,7 +723,7 @@ async function obtenerProxyDisponible() {
       // Elige aleatoriamente uno de los proxies con menos hosts
       const proxyAleatorio =
         proxiesDisponibles[
-        Math.floor(Math.random() * proxiesDisponibles.length)
+          Math.floor(Math.random() * proxiesDisponibles.length)
         ];
 
       return proxyAleatorio;
@@ -757,10 +748,6 @@ async function llenarListaDesplegable() {
 
     // Datos de la solicitud JSON-RPC
     var jsonRpcRequest = {
-
-
-
-      
       jsonrpc: "2.0",
       method: "item.get",
       params: {
@@ -808,8 +795,6 @@ async function llenarListaDesplegable() {
   }
 }
 
-
-
 // Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
 async function buscarItemIdsYKeysPorNombre() {
   try {
@@ -846,9 +831,10 @@ async function buscarItemIdsYKeysPorNombre() {
       const data = await response.json();
 
       // Filtra solo los elementos con "keys_" específicas
-      const filteredItems = data.result.filter((item) =>
-        item.key_.startsWith("net.if.out[ifHCOutOctets.") ||
-        item.key_.startsWith("net.if.in[ifHCInOctets.")
+      const filteredItems = data.result.filter(
+        (item) =>
+          item.key_.startsWith("net.if.out[ifHCOutOctets.") ||
+          item.key_.startsWith("net.if.in[ifHCInOctets.")
       );
 
       // Verifica si se encontraron elementos después del filtrado
@@ -870,21 +856,18 @@ async function buscarItemIdsYKeysPorNombre() {
   }
 }
 
-
 // Objeto para mapear los itemids a sus nombres
 const nombresDeItems = {
-  'itemid1': 'Bits sent',
-  'itemid2': 'Bits received',
+  itemid1: "Bits sent",
+  itemid2: "Bits received",
   // Agrega más mapeos si es necesario
 };
 
-// Función para obtener datos históricos de Zabbix utilizando history.get
 // Función para obtener datos históricos de Zabbix utilizando history.get
 async function obtenerDatosHistoricos(itemDetails) {
   const datosHistoricos = [];
 
   for (const item of itemDetails) {
-    
     const jsonRpcRequest = {
       jsonrpc: "2.0",
       method: "history.get",
@@ -913,10 +896,10 @@ async function obtenerDatosHistoricos(itemDetails) {
     const datosConvertidos = convertirDatosHistoricos(data.result);
 
     let etiqueta = selectedItem;
-    if (item.key_ === 'net.if.out[ifHCOutOctets') {
-      etiqueta += ' - Bits sent';
-    } else if (item.key_ === 'net.if.in[ifHCInOctets') {
-      etiqueta += ' - Bits received';
+    if (item.key_ === "net.if.out[ifHCOutOctets") {
+      etiqueta += " - Bits sent";
+    } else if (item.key_ === "net.if.in[ifHCInOctets") {
+      etiqueta += " - Bits received";
     }
 
     datosHistoricos.push({
@@ -939,22 +922,19 @@ function convertirDatosHistoricos(datos) {
 
 
 
-
-
-let myChart = null; // Variable para almacenar la instancia del gráfico.
-
 function graficarDatosHistoricos(datos) {
-  const colores = ['rgba(75, 192, 192, 1)', 'rgba(192, 75, 75, 1)', 'rgba(75, 75, 192, 1)', 'rgba(192, 192, 75, 1'];
-
-
-  const etiquetas = [
-    'Bits received',
-    'Bits sent',
+  const colores = [
+    "rgba(75, 192, 192, 1)",
+    "rgba(192, 75, 75, 1)",
+    "rgba(75, 75, 192, 1)",
+    "rgba(192, 192, 75, 1",
   ];
 
+  const etiquetas = ["Bits received", "Bits sent"];
+
   const datasets = datos.map((dato, index) => ({
-    label: `${etiquetas[index]} - ${dato.key}`,  // Combinando etiquetas personalizadas y originales
-    data: dato.values.map(value => ({
+    label: `${etiquetas[index]} - ${dato.key}`, // Combinando etiquetas personalizadas y originales
+    data: dato.values.map((value) => ({
       x: value.timestamp,
       y: value.mbps,
     })),
@@ -962,7 +942,7 @@ function graficarDatosHistoricos(datos) {
     backgroundColor: colores[index % colores.length],
   }));
 
-  const ctx = document.getElementById('myChart').getContext('2d');
+  const ctx = document.getElementById("myChart").getContext("2d");
 
   if (myChart) {
     // Si ya existe una instancia de Chart, actualiza los datos en lugar de crear una nueva.
@@ -970,27 +950,29 @@ function graficarDatosHistoricos(datos) {
     myChart.update(); // Actualiza el gráfico con los nuevos datos.
   } else {
     myChart = new Chart(ctx, {
-      type: 'line',
+      type: "line",
       data: {
         datasets: datasets,
       },
       options: {
         scales: {
           x: {
-            type: 'time',
+            type: "time",
             time: {
-              unit: 'minute'
-            }
+              unit: "minute",
+            },
           },
           y: {
-            beginAtZero: true
-          }
-        }
-      }
+            beginAtZero: true,
+            ticks: {
+              callback: function (value) {
+                return value + " Mbps";
+              },
+
+            }
+          },
+        },
+      },
     });
   }
 }
-
-
-
-
