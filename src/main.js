@@ -15,8 +15,6 @@ const itemMacro = document.getElementById("itemInterface");
 const itemTiempo = document.getElementById("tiempo");
 const btnActualizar = document.getElementById("botonActualizar");
 
-
-
 let departamentos = [];
 let data;
 let municipios = [];
@@ -35,6 +33,7 @@ let selectedHost = "";
 let selectedItem = "";
 let selectedMacro = "";
 let selectedTiempo = "";
+let myChart = null; // Variable para almacenar la instancia del gráfico.
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
@@ -45,27 +44,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     authToken = storedToken;
 
     console.log("Sesión activa encontrada con token:", authToken);
-   // Verificar si el usuario está tratando de acceder a "index.html" manualmente
-   if (currentPath.includes("index.html")) {
-    // Determina la página a la que debe redirigirse (puedes usar "main.html" o "formMacroGraph.html" según tu lógica)
-    const redirectTo = "main.html";
-    window.location.href = redirectTo;
+    // Verificar si el usuario está tratando de acceder a "index.html" manualmente
+    if (currentPath.includes("index.html")) {
+      // Determina la página a la que debe redirigirse (puedes usar "main.html" o "formMacroGraph.html" según tu lógica)
+      const redirectTo = "main.html";
+      window.location.href = redirectTo;
+    }
+  } else {
+    console.log("No se encontró una sesión activa.");
+
+    // Verificar si el usuario está tratando de acceder a "main.html" manualmente
+    if (currentPath.includes("main.html")) {
+      // Si el usuario no está logueado, redirigir a la página de inicio de sesión
+      window.location.href = "index.html";
+    }
   }
-} else {
-  console.log("No se encontró una sesión activa.");
-  
-  // Verificar si el usuario está tratando de acceder a "main.html" manualmente
-  if (currentPath.includes("main.html")) {
-    // Si el usuario no está logueado, redirigir a la página de inicio de sesión
-    window.location.href = "index.html";
-  }
-}
 
-
-  
-
-
-  
   if (currentPath.includes("main.html")) {
     // Obtiene los datos del archivo JSON usando la función obtenerDatos()
     data = await obtenerDatos();
@@ -128,8 +122,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       btnCrear.addEventListener("click", async function (event) {
         event.preventDefault();
         const proxyDisponible = await obtenerProxyDisponible();
-
-        
 
         if (proxyDisponible) {
           guardarTemplateId();
@@ -224,8 +216,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     obtenerTemplates();
     checkLoggedIn();
-
   } else if (currentPath.includes("formMacroGraph.html")) {
+    // Agregar un manejador de eventos al cambio en la lista desplegable
+    document
+      .getElementById("itemInterface")
+      .addEventListener("change", buscarItemIdsYKeysPorNombre);
+
     // Asignar la función para capturar el ítem seleccionado de la lista desplegable
     document
       .getElementById("itemInterface")
@@ -245,7 +241,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     llenarListaDesplegable();
 
     // Función para obtener el hostid a partir del nombre del host
-   const obtenerHostIdPorNombre = async (nombreHost) => {
+    const obtenerHostIdPorNombre = async (nombreHost) => {
       const response = await fetch(authURL, {
         method: "POST",
         headers: {
@@ -279,7 +275,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("No se encontró el host con el nombre:", nombreHost);
       }
     };
-
 
     // Agregar un evento para el botón de actualizar
     if (btnActualizar) {
@@ -347,6 +342,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         }
       });
+
     }
   }
 });
@@ -390,7 +386,6 @@ function llenarMunicipios() {
       .map((nombre) => `<option value="${nombre}">${nombre}</option>`)
       .join(""); // Combina las opciones en una cadena para insertarlas en el select
 }
-
 
 // Valida el formato de una dirección IP
 function validaIp(ip) {
@@ -499,7 +494,6 @@ async function obtenerTemplates() {
   }
 }
 
-
 function guardarTemplate() {
   const selectedValue = selectElement.value;
   if (selectedValue) {
@@ -519,7 +513,6 @@ function guardarTemplateId() {
   }
 }
 
-
 // Función para realizar el inicio de sesión
 async function login() {
   event.preventDefault(); // Evita que el formulario se envíe automáticamente
@@ -528,7 +521,7 @@ async function login() {
   const password = document.getElementById("password").value;
 
   const params = {
-    user: username,
+    username: username,
     password: password,
   };
 
@@ -557,22 +550,8 @@ async function login() {
         console.log("Inicio de sesión exitoso.");
         console.log("Token de autenticación:", authToken);
 
-        // Verificar si el usuario pertenece a un grupo específico (grupo 25)
-        // o a otros grupos (por ejemplo, grupos 37 o 31)
-        const userGroups = await getUserGroups(username);      
-
-        if (userGroups.includes("14")) {
-          window.location.href = "main.html";
-        } else if (userGroups.includes("25")) {
-          // El usuario pertenece al grupo 25, redirigir a main.html
-          window.location.href = "main.html";
-        } else if (userGroups.includes("37") || userGroups.includes("31")) {
-          // El usuario pertenece a los grupos 37 o 31, redirigir a formMacroGraph.html
-          window.location.href = "formMacroGraph.html";
-        } else {
-          // El usuario no pertenece a ninguno de los grupos especificados
-          alert("El usuario ingresado no pertenece a ninguno de los Hostgroups disponibles.");
-        }
+        // Redirigir a la página principal después del inicio de sesión
+        window.location.href = "main.html";
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
@@ -585,55 +564,6 @@ async function login() {
     console.error("Error al realizar la solicitud:", error);
   }
 }
-
-async function getUserGroups(username) {
-  try {
-    const response = await fetch(authURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        method: "user.get",
-        params: {
-          output: "extend",
-          selectGroups: "extend",
-          filter: {
-            alias: username,
-          },
-        },
-        auth: authToken,
-        id: 1,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.result && data.result.length > 0) {
-        const user = data.result[0];
-        if (user.groups && user.groups.length > 0) {
-          const groupIds = user.groups.map((group) => group.groupid);
-          console.log("IDs de grupos del usuario:", groupIds);
-          return groupIds;
-        } else {
-          console.log("El usuario no tiene grupos asignados.");
-        }
-      } else {
-        console.log("No se encontró al usuario.");
-      }
-    } else {
-      console.log("Error al obtener los datos del usuario:", response.statusText);
-    }
-  } catch (error) {
-    console.error("Error al realizar la solicitud:", error);
-  }
-  return [];
-}
-
-
-
-
 
 // Función para cerrar sesión
 async function logout() {
@@ -733,17 +663,22 @@ async function checkLoggedIn() {
 }
 
 async function obtenerProxyDisponible() {
-
   const hostValue = selectHost.value;
   const ipValue = selectIp.value;
   const comunidadValue = selectComunidad.value;
 
-  if (!hostValue || !ipValue || !comunidadValue || !selectedTemplateId || !selectedDepartamento || !selectedMunicipio) {
+  if (
+    !hostValue ||
+    !ipValue ||
+    !comunidadValue ||
+    !selectedTemplateId ||
+    !selectedDepartamento ||
+    !selectedMunicipio
+  ) {
     alert("Por favor, complete todos los campos del formulario.");
     return null;
   }
 
-  
   try {
     const response = await fetch(authURL, {
       method: "POST",
@@ -788,7 +723,7 @@ async function obtenerProxyDisponible() {
       // Elige aleatoriamente uno de los proxies con menos hosts
       const proxyAleatorio =
         proxiesDisponibles[
-        Math.floor(Math.random() * proxiesDisponibles.length)
+          Math.floor(Math.random() * proxiesDisponibles.length)
         ];
 
       return proxyAleatorio;
@@ -860,15 +795,271 @@ async function llenarListaDesplegable() {
   }
 }
 
+// Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
+async function buscarItemIdsYKeysPorNombre() {
+  try {
+    // Obtén el nombre del item seleccionado
+    const selectedItemName = document.getElementById("itemInterface").value;
+
+    // Verifica si se seleccionó un nombre de item
+    if (selectedItemName) {
+      // Datos de la solicitud JSON-RPC para buscar "item id" y "keys_" por nombre de item
+      const jsonRpcRequest = {
+        jsonrpc: "2.0",
+        method: "item.get",
+        params: {
+          output: ["itemids", "key_"],
+          host: selectedHost, // Utiliza el host seleccionado previamente
+          search: {
+            name: selectedItemName, // Busca por el nombre seleccionado
+          },
+        },
+        auth: authToken,
+        id: 1, // Puedes utilizar un ID diferente
+      };
+
+      // Realiza la solicitud HTTP a la API de Zabbix y espera la respuesta
+      const response = await fetch(authURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(jsonRpcRequest),
+      });
+
+      // Procesa la respuesta como JSON
+      const data = await response.json();
+
+      // Filtra solo los elementos con "keys_" específicas
+      const filteredItems = data.result.filter(
+        (item) =>
+          item.key_.startsWith("net.if.out[ifHCOutOctets.") ||
+          item.key_.startsWith("net.if.in[ifHCInOctets.")
+      );
+
+      // Verifica si se encontraron elementos después del filtrado
+      if (filteredItems.length > 0) {
+        const itemDetails = filteredItems.map((item) => ({
+          itemid: item.itemid,
+          key: item.key_,
+        }));
+        console.log("Elementos con keys específicas:", itemDetails);
+
+        // Llama a la función obtenerDatosHistoricos con itemIds
+        obtenerDatosHistoricos(itemDetails);
+      } else {
+        console.log("No se encontraron elementos con las keys específicas.");
+      }
+    }
+  } catch (error) {
+    console.error("Error en la solicitud:", error);
+  }
+}
+
+// Objeto para mapear los itemids a sus nombres
+const nombresDeItems = {
+  itemid1: "Bits sent",
+  itemid2: "Bits received",
+  // Agrega más mapeos si es necesario
+};
+
+// Función para obtener datos históricos de Zabbix utilizando history.get
+async function obtenerDatosHistoricos(itemDetails) {
+  const datosHistoricos = [];
+
+  for (const item of itemDetails) {
+    const jsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "history.get",
+      params: {
+        output: "extend",
+        history: 3,
+        itemids: item.itemid,
+        sortfield: "clock",
+        sortorder: "DESC",
+        limit: 60,
+      },
+      auth: authToken,
+      id: 2,
+    };
+
+    const response = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonRpcRequest),
+    });
+
+    const data = await response.json();
+
+    const datosConvertidos = convertirDatosHistoricos(data.result);
+
+    let etiqueta = selectedItem;
+    if (item.key_ === "net.if.out[ifHCOutOctets") {
+      etiqueta += " - Bits sent";
+    } else if (item.key_ === "net.if.in[ifHCInOctets") {
+      etiqueta += " - Bits received";
+    }
+
+    datosHistoricos.push({
+      key: etiqueta,
+      values: datosConvertidos,
+    });
+  }
+
+  graficarDatosHistoricos(datosHistoricos);
+}
+
+// Función para convertir datos históricos
+function convertirDatosHistoricos(datos) {
+  // Mapea los datos y realiza las conversiones necesarias
+  return datos.map((dato) => ({
+    timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp
+    mbps: dato.value / 1000, // Convierte "value" de kbps a Mbps
+  }));
+}
 
 
 
+function graficarDatosHistoricos(datos) {
+  const colores = [
+    "rgba(75, 192, 192, 1)",
+    "rgba(192, 75, 75, 1)",
+    "rgba(75, 75, 192, 1)",
+    "rgba(192, 192, 75, 1",
+  ];
+
+  const etiquetas = ["Bits received", "Bits sent"];
+
+  const datasets = datos.map((dato, index) => ({
+    label: `${etiquetas[index]} - ${dato.key}`, // Combinando etiquetas personalizadas y originales
+    data: dato.values.map((value) => ({
+      x: value.timestamp,
+      y: value.mbps,
+    })),
+    borderColor: colores[index % colores.length],
+    backgroundColor: colores[index % colores.length],
+  }));
+
+  const ctx = document.getElementById("myChart").getContext("2d");
+
+  if (myChart) {
+    // Si ya existe una instancia de Chart, actualiza los datos en lugar de crear una nueva.
+    myChart.data.datasets = datasets;
+    myChart.options.plugins.title.text = "Tipo de datos en el eje X"; // Cambia el título al eje X
+    myChart.update(); // Actualiza el gráfico con los nuevos datos.
+
+    // Forzar el tamaño del texto en línea
+    document.querySelector("#myChart canvas").style.fontSize = "40px";
+  } else {
+    myChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        datasets: datasets,
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: "Cantidad de datos",
+            font: {
+              size: 0, // Tamaño del texto en el eje Y
+            },
+          },
+        },
+        scales: {
+          x: {
+            type: "time",
+            time: {
+              unit: "minute",
+            },
+            grid: {
+              display: true, // Mostrar líneas en el eje X
+            },
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: "Cantidad de datos (Mbps)",
+              font: {
+                size: 20, // Tamaño del texto en el eje Y
+                color: "gray",
+              },
+            },
+            ticks: {
+              callback: function (value) {
+                return value + "mbps";
+              },
+            },
+            grid: {
+              display: true, // Mostrar líneas en el eje Y
+            },
+          },
+        },
+        layout: {
+          padding: {
+            bottom: 2, // Ajusta el espacio debajo de la gráfica
+            top: 10, // Añade espacio encima de la gráfica
+          },
+        },
+      },
+    });
+
+    // Agregar el título "Tiempo" encima de la gráfica
+    const tituloEncima = document.createElement("div");
+    tituloEncima.textContent = "Grafico comparativo de Bits Received vs Bits Sent";
+    tituloEncima.style.textAlign = "center"; // Centrar el texto
+    tituloEncima.style.color = "White"; // Cambiar el color del texto
+    tituloEncima.style.fontSize = "20px"; // Ajusta el tamaño del texto
+
+    document.getElementById("myChart").before(tituloEncima);
+    
+    // Agregar el título "Tiempo" debajo de la gráfica
+    const tituloTiempo = document.createElement("div");
+    tituloTiempo.textContent = "Tiempo (h:m)";
+    tituloTiempo.style.textAlign = "center"; // Centrar el texto
+    tituloTiempo.style.color = "gray"; // Cambiar el color del texto
+    tituloTiempo.style.fontSize = "20px"; // Ajusta el tamaño del texto
+    tituloTiempo.style.marginTop = "1px"; // Ajustar la distancia superior
+
+    document.getElementById("myChart").after(tituloTiempo);
+  }
+
+
+     // Crear elementos para las líneas de cuadrícula en el eje X y Y
+  const cuadriculaX = document.createElement("hr");
+  cuadriculaX.style.border = "none";
+  cuadriculaX.style.borderTop = "1px dashed white"; // Estilo de la línea de cuadrícula
+  cuadriculaX.style.margin = "0";
+  cuadriculaX.style.padding = "0";
+  cuadriculaX.style.width = "100%";
+  cuadriculaX.style.position = "absolute";
+  cuadriculaX.style.top = "50%"; // Alinea la línea de cuadrícula en el centro
+  cuadriculaX.style.transform = "translateY(-50%)"; // Alinea la línea de cuadrícula en el centro verticalmente
+
+  const cuadriculaY = document.createElement("div");
+  cuadriculaY.style.border = "1px dashed red"; // Estilo de la línea de cuadrícula
+  cuadriculaY.style.height = "100%";
+  cuadriculaY.style.position = "absolute";
+  cuadriculaY.style.left = "50%"; // Alinea la línea de cuadrícula en el centro
+  cuadriculaY.style.transform = "translateX(-50%)"; // Alinea la línea de cuadrícula en el centro horizontalmente
+
+
+ // Cambiar el color de fondo del contenedor del gráfico a negro
+ const contenedorGrafico = document.getElementById("myChart");
+ contenedorGrafico.style.backgroundColor = "white"; // Cambiar el color de fondo del contenedor
+
+
+  // Cambiar el color de las líneas de cuadrícula a blanco
+  cuadriculaX.style.borderTop = "1px dashed white";
+  cuadriculaY.style.border = "1px dashed white";
+
+  // Agregar los elementos de la línea de cuadrícula al contenedor del gráfico
+  contenedorGrafico.appendChild(cuadriculaX);
+  contenedorGrafico.appendChild(cuadriculaY);
 
 
 
-
-
-
-
-
-
+}
