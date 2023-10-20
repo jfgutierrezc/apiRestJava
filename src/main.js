@@ -14,6 +14,7 @@ const hostMacro = document.getElementById("host");
 const itemMacro = document.getElementById("itemInterface");
 const itemTiempo = document.getElementById("tiempo");
 const btnActualizar = document.getElementById("botonActualizar");
+const selectElemento = document.getElementById("itemInterface");
 
 let departamentos = [];
 let data;
@@ -328,6 +329,11 @@ document.addEventListener("DOMContentLoaded", async () => {
               alert("Macro creada exitosamente.");
 
               formMacro.reset();
+              selectElemento.innerHTML = "";
+              // Deshabilitar la opción predeterminada
+              selectElemento.appendChild(
+                new Option("Seleccione un ítem", "", false, false)
+              );
             } else {
               console.error("Error al crear la macro:", response.statusText);
               alert(
@@ -342,7 +348,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         }
       });
-
     }
   }
 });
@@ -513,7 +518,139 @@ function guardarTemplateId() {
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+/* 
+
 // Función para realizar el inicio de sesión
+async function login() {
+  event.preventDefault();
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const params = {
+    username: username,
+    password: password,
+  };
+
+  try {
+    const response = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "user.login",
+        params: params,
+        id: 1,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.result !== undefined) {
+        authToken = data.result;
+        localStorage.setItem("authToken", authToken);
+
+        console.log("Inicio de sesión exitoso.");
+        console.log("Token de autenticación:", authToken);
+
+        // Lógica para verificar grupos y redirigir en función del grupo
+        verificarGruposYRedirigir(username);
+
+      } else {
+        alert("Usuario o contraseña incorrecta.");
+        formularioLogin.reset();
+      }
+    } else {
+      console.error("Error al iniciar sesión:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error al realizar la solicitud:", error);
+  }
+}
+
+function verificarGruposYRedirigir(username) {
+  // Realiza una consulta a la API de Zabbix para obtener información sobre el usuario
+  // y sus grupos correspondientes.
+
+  // Lógica para verificar grupos y redirigir al usuario a la página adecuada en función de su grupo.
+  // Por ejemplo:
+  if (username.grupo === "7") {
+    window.location.href = "formMacroGraph.html";
+  } else if (username.grupo === "14") {
+    window.location.href = "formDiscovery.html";
+  } else {
+    // Redirigir a una página predeterminada si no se encuentra en ningún grupo específico.
+    window.location.href = "pagina_predeterminada.html";
+  }
+}
+
+
+*/
+
+
+
+
+
+
+
+
+
+async function obtenerGruposDeUsuario(username) {
+  const gruposUsuario = [];
+
+  try {
+    const response = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "user.get",
+        params: {
+          output: ["usrgrps"],
+          selectUsrgrps: "extend",
+          filter: {
+            alias: [username], // Ajusta esto según cómo estén almacenados los nombres de usuario en Zabbix
+          },
+        },
+        auth: authToken, // Asegúrate de que authToken esté disponible
+        id: 1,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.result && data.result.length > 0) {
+        const grupos = data.result[0].usrgrps;
+        grupos.forEach((grupo) => {
+          gruposUsuario.push(grupo.name);
+        });
+      }
+    } else {
+      console.error("Error al obtener los grupos del usuario:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error en la solicitud a la API de Zabbix:", error);
+  }
+
+  return gruposUsuario;
+}
+
 async function login() {
   event.preventDefault(); // Evita que el formulario se envíe automáticamente
 
@@ -550,8 +687,20 @@ async function login() {
         console.log("Inicio de sesión exitoso.");
         console.log("Token de autenticación:", authToken);
 
-        // Redirigir a la página principal después del inicio de sesión
-        window.location.href = "main.html";
+        // Realiza una consulta adicional para obtener los grupos del usuario
+        const grupos = await obtenerGruposDeUsuario(username);
+
+        // Luego verifica el grupo al que pertenece y redirige
+        if (grupos.includes("14")) {
+          window.location.href = "formMacroGraph.html";
+        } else if (grupos.includes("7")) {
+          window.location.href = "formDiscovery.html";
+        } else if (grupos.includes("3")) {
+          window.location.href = "main.html";
+        } else {
+          // Redirigir a una página predeterminada si no se encuentra el grupo
+          window.location.href = "formDiscovery.html";
+        }
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
@@ -564,6 +713,19 @@ async function login() {
     console.error("Error al realizar la solicitud:", error);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Función para cerrar sesión
 async function logout() {
@@ -743,9 +905,6 @@ async function obtenerProxyDisponible() {
 // Función asincrónica para llenar la lista desplegable
 async function llenarListaDesplegable() {
   try {
-    // Obtener el elemento select
-    var selectElement = document.getElementById("itemInterface");
-
     // Datos de la solicitud JSON-RPC
     var jsonRpcRequest = {
       jsonrpc: "2.0",
@@ -773,8 +932,13 @@ async function llenarListaDesplegable() {
     // Procesar la respuesta como JSON
     const data = await response.json();
 
+    // Limpiar la lista desplegable
+    selectElemento.innerHTML = "";
+
     // Deshabilitar la opción predeterminada
-    selectElement.querySelector('option[value=""]').disabled = true;
+    selectElemento.appendChild(
+      new Option("Seleccione un ítem", "", false, false)
+    );
 
     data.result.forEach(function (item) {
       var option = document.createElement("option");
@@ -784,15 +948,18 @@ async function llenarListaDesplegable() {
 
       option.value = processedName; // Usar processedName en lugar de item.key_
       option.text = processedName;
-      selectElement.appendChild(option);
+      selectElemento.appendChild(option);
     });
 
-    // Guardar el valor seleccionado en las variables
+    // Guardar el valor seleccionado en las variable
     selectedHost = document.getElementById("host").value;
-    selectedItem = selectElement.value; // Usar selectElement.value para capturar el valor seleccionado
+    // selectedItem se mantiene igual si se desea mantener "Seleccione un ítem" seleccionado
   } catch (error) {
     console.error("Error en la solicitud:", error);
   }
+
+  // Deshabilitar la opción "Seleccione un ítem" después de llenar la lista
+  selectElemento.querySelector('option[value=""]').disabled = true;
 }
 
 // Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
@@ -916,11 +1083,9 @@ function convertirDatosHistoricos(datos) {
   // Mapea los datos y realiza las conversiones necesarias
   return datos.map((dato) => ({
     timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp
-    mbps: dato.value / 1000, // Convierte "value" de kbps a Mbps
+    mbps: dato.value / 1000000, // Convierte "value" de kbps a Mbps
   }));
 }
-
-
 
 function graficarDatosHistoricos(datos) {
   const colores = [
@@ -949,9 +1114,6 @@ function graficarDatosHistoricos(datos) {
     myChart.data.datasets = datasets;
     myChart.options.plugins.title.text = "Tipo de datos en el eje X"; // Cambia el título al eje X
     myChart.update(); // Actualiza el gráfico con los nuevos datos.
-
-    // Forzar el tamaño del texto en línea
-    document.querySelector("#myChart canvas").style.fontSize = "40px";
   } else {
     myChart = new Chart(ctx, {
       type: "line",
@@ -1009,16 +1171,17 @@ function graficarDatosHistoricos(datos) {
 
     // Agregar el título "Tiempo" encima de la gráfica
     const tituloEncima = document.createElement("div");
-    tituloEncima.textContent = "Grafico comparativo de Bits Received vs Bits Sent";
+    tituloEncima.textContent =
+      "Grafico comparativo de Bits Received vs Bits Sent";
     tituloEncima.style.textAlign = "center"; // Centrar el texto
     tituloEncima.style.color = "White"; // Cambiar el color del texto
     tituloEncima.style.fontSize = "20px"; // Ajusta el tamaño del texto
 
     document.getElementById("myChart").before(tituloEncima);
-    
+
     // Agregar el título "Tiempo" debajo de la gráfica
     const tituloTiempo = document.createElement("div");
-    tituloTiempo.textContent = "Tiempo (h:m)";
+    tituloTiempo.textContent = "Tiempo (hh:mm)";
     tituloTiempo.style.textAlign = "center"; // Centrar el texto
     tituloTiempo.style.color = "gray"; // Cambiar el color del texto
     tituloTiempo.style.fontSize = "20px"; // Ajusta el tamaño del texto
@@ -1027,8 +1190,7 @@ function graficarDatosHistoricos(datos) {
     document.getElementById("myChart").after(tituloTiempo);
   }
 
-
-     // Crear elementos para las líneas de cuadrícula en el eje X y Y
+  // Crear elementos para las líneas de cuadrícula en el eje X y Y
   const cuadriculaX = document.createElement("hr");
   cuadriculaX.style.border = "none";
   cuadriculaX.style.borderTop = "1px dashed white"; // Estilo de la línea de cuadrícula
@@ -1046,11 +1208,9 @@ function graficarDatosHistoricos(datos) {
   cuadriculaY.style.left = "50%"; // Alinea la línea de cuadrícula en el centro
   cuadriculaY.style.transform = "translateX(-50%)"; // Alinea la línea de cuadrícula en el centro horizontalmente
 
-
- // Cambiar el color de fondo del contenedor del gráfico a negro
- const contenedorGrafico = document.getElementById("myChart");
- contenedorGrafico.style.backgroundColor = "white"; // Cambiar el color de fondo del contenedor
-
+  // Cambiar el color de fondo del contenedor del gráfico a negro
+  const contenedorGrafico = document.getElementById("myChart");
+  contenedorGrafico.style.backgroundColor = "white"; // Cambiar el color de fondo del contenedor
 
   // Cambiar el color de las líneas de cuadrícula a blanco
   cuadriculaX.style.borderTop = "1px dashed white";
@@ -1059,7 +1219,4 @@ function graficarDatosHistoricos(datos) {
   // Agregar los elementos de la línea de cuadrícula al contenedor del gráfico
   contenedorGrafico.appendChild(cuadriculaX);
   contenedorGrafico.appendChild(cuadriculaY);
-
-
-
 }
