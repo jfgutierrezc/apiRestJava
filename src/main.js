@@ -778,7 +778,7 @@ async function llenarListaDesplegable() {
       selectElement.innerHTML = "";
 
       // Deshabilitar la opción predeterminada
-      selectElement.appendChild(new Option("Seleccione un ítem", "", true, true));
+      selectElement.appendChild(new Option("Seleccione un ítem", "", false, false));
 
       data.result.forEach(function (item) {
           var option = document.createElement("option");
@@ -798,6 +798,9 @@ async function llenarListaDesplegable() {
   } catch (error) {
       console.error("Error en la solicitud:", error);
   }
+
+   // Deshabilitar la opción "Seleccione un ítem" después de llenar la lista
+   selectElement.querySelector('option[value=""]').disabled = true;
 }
 
 // Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
