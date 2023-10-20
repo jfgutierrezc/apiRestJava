@@ -949,8 +949,7 @@ function graficarDatosHistoricos(datos) {
     myChart.options.plugins.title.text = "Tipo de datos en el eje X"; // Cambia el título al eje X
     myChart.update(); // Actualiza el gráfico con los nuevos datos.
 
-    // Forzar el tamaño del texto en línea
-    document.querySelector("#myChart canvas").style.fontSize = "40px";
+   
   } else {
     myChart = new Chart(ctx, {
       type: "line",
