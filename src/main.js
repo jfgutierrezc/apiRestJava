@@ -921,7 +921,6 @@ function convertirDatosHistoricos(datos) {
 }
 
 
-
 function graficarDatosHistoricos(datos) {
   const colores = [
     "rgba(75, 192, 192, 1)",
@@ -947,7 +946,11 @@ function graficarDatosHistoricos(datos) {
   if (myChart) {
     // Si ya existe una instancia de Chart, actualiza los datos en lugar de crear una nueva.
     myChart.data.datasets = datasets;
+    myChart.options.plugins.title.text = "Tipo de datos en el eje X"; // Cambia el título al eje X
     myChart.update(); // Actualiza el gráfico con los nuevos datos.
+
+    // Forzar el tamaño del texto en línea
+    document.querySelector("#myChart canvas").style.fontSize = "40px";
   } else {
     myChart = new Chart(ctx, {
       type: "line",
@@ -955,24 +958,107 @@ function graficarDatosHistoricos(datos) {
         datasets: datasets,
       },
       options: {
+        plugins: {
+          title: {
+            display: true,
+            text: "Cantidad de datos",
+            font: {
+              size: 0, // Tamaño del texto en el eje Y
+            },
+          },
+        },
         scales: {
           x: {
             type: "time",
             time: {
               unit: "minute",
             },
+            grid: {
+              display: true, // Mostrar líneas en el eje X
+            },
           },
           y: {
             beginAtZero: true,
+            title: {
+              display: true,
+              text: "Cantidad de datos (Mbps)",
+              font: {
+                size: 20, // Tamaño del texto en el eje Y
+                color: "gray",
+              },
+            },
             ticks: {
               callback: function (value) {
-                return value + " Mbps";
+                return value + "mbps";
               },
-
-            }
+            },
+            grid: {
+              display: true, // Mostrar líneas en el eje Y
+            },
+          },
+        },
+        layout: {
+          padding: {
+            bottom: 2, // Ajusta el espacio debajo de la gráfica
+            top: 10, // Añade espacio encima de la gráfica
           },
         },
       },
     });
+
+    // Agregar el título "Tiempo" encima de la gráfica
+    const tituloEncima = document.createElement("div");
+    tituloEncima.textContent = "Grafico comparativo de Bits Received vs Bits Sent";
+    tituloEncima.style.textAlign = "center"; // Centrar el texto
+    tituloEncima.style.color = "White"; // Cambiar el color del texto
+    tituloEncima.style.fontSize = "20px"; // Ajusta el tamaño del texto
+
+    document.getElementById("myChart").before(tituloEncima);
+    
+    // Agregar el título "Tiempo" debajo de la gráfica
+    const tituloTiempo = document.createElement("div");
+    tituloTiempo.textContent = "Tiempo (h:m)";
+    tituloTiempo.style.textAlign = "center"; // Centrar el texto
+    tituloTiempo.style.color = "gray"; // Cambiar el color del texto
+    tituloTiempo.style.fontSize = "20px"; // Ajusta el tamaño del texto
+    tituloTiempo.style.marginTop = "1px"; // Ajustar la distancia superior
+
+    document.getElementById("myChart").after(tituloTiempo);
   }
+
+
+     // Crear elementos para las líneas de cuadrícula en el eje X y Y
+  const cuadriculaX = document.createElement("hr");
+  cuadriculaX.style.border = "none";
+  cuadriculaX.style.borderTop = "1px dashed white"; // Estilo de la línea de cuadrícula
+  cuadriculaX.style.margin = "0";
+  cuadriculaX.style.padding = "0";
+  cuadriculaX.style.width = "100%";
+  cuadriculaX.style.position = "absolute";
+  cuadriculaX.style.top = "50%"; // Alinea la línea de cuadrícula en el centro
+  cuadriculaX.style.transform = "translateY(-50%)"; // Alinea la línea de cuadrícula en el centro verticalmente
+
+  const cuadriculaY = document.createElement("div");
+  cuadriculaY.style.border = "1px dashed red"; // Estilo de la línea de cuadrícula
+  cuadriculaY.style.height = "100%";
+  cuadriculaY.style.position = "absolute";
+  cuadriculaY.style.left = "50%"; // Alinea la línea de cuadrícula en el centro
+  cuadriculaY.style.transform = "translateX(-50%)"; // Alinea la línea de cuadrícula en el centro horizontalmente
+
+
+ // Cambiar el color de fondo del contenedor del gráfico a negro
+ const contenedorGrafico = document.getElementById("myChart");
+ contenedorGrafico.style.backgroundColor = "white"; // Cambiar el color de fondo del contenedor
+
+
+  // Cambiar el color de las líneas de cuadrícula a blanco
+  cuadriculaX.style.borderTop = "1px dashed white";
+  cuadriculaY.style.border = "1px dashed white";
+
+  // Agregar los elementos de la línea de cuadrícula al contenedor del gráfico
+  contenedorGrafico.appendChild(cuadriculaX);
+  contenedorGrafico.appendChild(cuadriculaY);
+
+
+
 }
