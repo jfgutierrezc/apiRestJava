@@ -14,6 +14,7 @@ const hostMacro = document.getElementById("host");
 const itemMacro = document.getElementById("itemInterface");
 const itemTiempo = document.getElementById("tiempo");
 const btnActualizar = document.getElementById("botonActualizar");
+const selectElemento = document.getElementById("itemInterface");
 
 let departamentos = [];
 let data;
@@ -236,7 +237,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document
       .getElementById("host")
       .addEventListener("change", llenarListaDesplegable);
-      
 
     // Llamar a la función para llenar la lista desplegable al cargar la página
     llenarListaDesplegable();
@@ -329,6 +329,11 @@ document.addEventListener("DOMContentLoaded", async () => {
               alert("Macro creada exitosamente.");
 
               formMacro.reset();
+              selectElemento.innerHTML = "";
+              // Deshabilitar la opción predeterminada
+              selectElemento.appendChild(
+                new Option("Seleccione un ítem", "", false, false)
+              );
             } else {
               console.error("Error al crear la macro:", response.statusText);
               alert(
@@ -343,7 +348,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         }
       });
-
     }
   }
 });
@@ -744,63 +748,61 @@ async function obtenerProxyDisponible() {
 // Función asincrónica para llenar la lista desplegable
 async function llenarListaDesplegable() {
   try {
-      // Obtener el elemento select
-      var selectElement = document.getElementById("itemInterface");
+    // Datos de la solicitud JSON-RPC
+    var jsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "item.get",
+      params: {
+        output: "extend",
+        host: document.getElementById("host").value,
+        search: {
+          key_: "net.if.alias",
+        },
+      },
+      auth: authToken,
+      id: 1,
+    };
 
-      // Datos de la solicitud JSON-RPC
-      var jsonRpcRequest = {
-          jsonrpc: "2.0",
-          method: "item.get",
-          params: {
-              output: "extend",
-              host: document.getElementById("host").value,
-              search: {
-                  key_: "net.if.alias",
-              },
-          },
-          auth: authToken,
-          id: 1,
-      };
+    // Realizar la solicitud HTTP a la API de Zabbix y esperar la respuesta
+    const response = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonRpcRequest),
+    });
 
-      // Realizar la solicitud HTTP a la API de Zabbix y esperar la respuesta
-      const response = await fetch(authURL, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-          },
-          body: JSON.stringify(jsonRpcRequest),
-      });
+    // Procesar la respuesta como JSON
+    const data = await response.json();
 
-      // Procesar la respuesta como JSON
-      const data = await response.json();
+    // Limpiar la lista desplegable
+    selectElemento.innerHTML = "";
 
-      // Limpiar la lista desplegable
-      selectElement.innerHTML = "";
+    // Deshabilitar la opción predeterminada
+    selectElemento.appendChild(
+      new Option("Seleccione un ítem", "", false, false)
+    );
 
-      // Deshabilitar la opción predeterminada
-      selectElement.appendChild(new Option("Seleccione un ítem", "", false, false));
+    data.result.forEach(function (item) {
+      var option = document.createElement("option");
 
-      data.result.forEach(function (item) {
-          var option = document.createElement("option");
+      // Procesar el nombre para eliminar "Interface", lo que está entre paréntesis y ": Alias"
+      var processedName = item.name.replace(/^Interface |\(.*\)|: Alias$/g, "");
 
-          // Procesar el nombre para eliminar "Interface", lo que está entre paréntesis y ": Alias"
-          var processedName = item.name.replace(/^Interface |\(.*\)|: Alias$/g, "");
+      option.value = processedName; // Usar processedName en lugar de item.key_
+      option.text = processedName;
+      selectElemento.appendChild(option);
+    });
 
-          option.value = processedName; // Usar processedName en lugar de item.key_
-          option.text = processedName;
-          selectElement.appendChild(option);
-      });
-
-      // Guardar el valor seleccionado en las variable
-      selectedHost = document.getElementById("host").value;
-      // selectedItem se mantiene igual si se desea mantener "Seleccione un ítem" seleccionado
-
+    // Guardar el valor seleccionado en las variable
+    selectedHost = document.getElementById("host").value;
+    // selectedItem se mantiene igual si se desea mantener "Seleccione un ítem" seleccionado
   } catch (error) {
-      console.error("Error en la solicitud:", error);
+    console.error("Error en la solicitud:", error);
   }
 
-   // Deshabilitar la opción "Seleccione un ítem" después de llenar la lista
-   selectElement.querySelector('option[value=""]').disabled = true;
+  // Deshabilitar la opción "Seleccione un ítem" después de llenar la lista
+  selectElemento.querySelector('option[value=""]').disabled = true;
 }
 
 // Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
@@ -928,7 +930,6 @@ function convertirDatosHistoricos(datos) {
   }));
 }
 
-
 function graficarDatosHistoricos(datos) {
   const colores = [
     "rgba(75, 192, 192, 1)",
@@ -956,8 +957,6 @@ function graficarDatosHistoricos(datos) {
     myChart.data.datasets = datasets;
     myChart.options.plugins.title.text = "Tipo de datos en el eje X"; // Cambia el título al eje X
     myChart.update(); // Actualiza el gráfico con los nuevos datos.
-
-   
   } else {
     myChart = new Chart(ctx, {
       type: "line",
@@ -1015,13 +1014,14 @@ function graficarDatosHistoricos(datos) {
 
     // Agregar el título "Tiempo" encima de la gráfica
     const tituloEncima = document.createElement("div");
-    tituloEncima.textContent = "Grafico comparativo de Bits Received vs Bits Sent";
+    tituloEncima.textContent =
+      "Grafico comparativo de Bits Received vs Bits Sent";
     tituloEncima.style.textAlign = "center"; // Centrar el texto
     tituloEncima.style.color = "White"; // Cambiar el color del texto
     tituloEncima.style.fontSize = "20px"; // Ajusta el tamaño del texto
 
     document.getElementById("myChart").before(tituloEncima);
-    
+
     // Agregar el título "Tiempo" debajo de la gráfica
     const tituloTiempo = document.createElement("div");
     tituloTiempo.textContent = "Tiempo (h:m)";
@@ -1033,8 +1033,7 @@ function graficarDatosHistoricos(datos) {
     document.getElementById("myChart").after(tituloTiempo);
   }
 
-
-     // Crear elementos para las líneas de cuadrícula en el eje X y Y
+  // Crear elementos para las líneas de cuadrícula en el eje X y Y
   const cuadriculaX = document.createElement("hr");
   cuadriculaX.style.border = "none";
   cuadriculaX.style.borderTop = "1px dashed white"; // Estilo de la línea de cuadrícula
@@ -1052,11 +1051,9 @@ function graficarDatosHistoricos(datos) {
   cuadriculaY.style.left = "50%"; // Alinea la línea de cuadrícula en el centro
   cuadriculaY.style.transform = "translateX(-50%)"; // Alinea la línea de cuadrícula en el centro horizontalmente
 
-
- // Cambiar el color de fondo del contenedor del gráfico a negro
- const contenedorGrafico = document.getElementById("myChart");
- contenedorGrafico.style.backgroundColor = "white"; // Cambiar el color de fondo del contenedor
-
+  // Cambiar el color de fondo del contenedor del gráfico a negro
+  const contenedorGrafico = document.getElementById("myChart");
+  contenedorGrafico.style.backgroundColor = "white"; // Cambiar el color de fondo del contenedor
 
   // Cambiar el color de las líneas de cuadrícula a blanco
   cuadriculaX.style.borderTop = "1px dashed white";
@@ -1065,7 +1062,4 @@ function graficarDatosHistoricos(datos) {
   // Agregar los elementos de la línea de cuadrícula al contenedor del gráfico
   contenedorGrafico.appendChild(cuadriculaX);
   contenedorGrafico.appendChild(cuadriculaY);
-
-
-
 }
