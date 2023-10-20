@@ -926,7 +926,7 @@ function convertirDatosHistoricos(datos) {
   // Mapea los datos y realiza las conversiones necesarias
   return datos.map((dato) => ({
     timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp
-    mbps: dato.value / 100000, // Convierte "value" de kbps a Mbps
+    mbps: dato.value / 1000000, // Convierte "value" de kbps a Mbps
   }));
 }
 
