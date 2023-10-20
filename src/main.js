@@ -236,6 +236,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document
       .getElementById("host")
       .addEventListener("change", llenarListaDesplegable);
+      
 
     // Llamar a la función para llenar la lista desplegable al cargar la página
     llenarListaDesplegable();
@@ -743,55 +744,59 @@ async function obtenerProxyDisponible() {
 // Función asincrónica para llenar la lista desplegable
 async function llenarListaDesplegable() {
   try {
-    // Obtener el elemento select
-    var selectElement = document.getElementById("itemInterface");
+      // Obtener el elemento select
+      var selectElement = document.getElementById("itemInterface");
 
-    // Datos de la solicitud JSON-RPC
-    var jsonRpcRequest = {
-      jsonrpc: "2.0",
-      method: "item.get",
-      params: {
-        output: "extend",
-        host: document.getElementById("host").value,
-        search: {
-          key_: "net.if.alias",
-        },
-      },
-      auth: authToken,
-      id: 1,
-    };
+      // Datos de la solicitud JSON-RPC
+      var jsonRpcRequest = {
+          jsonrpc: "2.0",
+          method: "item.get",
+          params: {
+              output: "extend",
+              host: document.getElementById("host").value,
+              search: {
+                  key_: "net.if.alias",
+              },
+          },
+          auth: authToken,
+          id: 1,
+      };
 
-    // Realizar la solicitud HTTP a la API de Zabbix y esperar la respuesta
-    const response = await fetch(authURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(jsonRpcRequest),
-    });
+      // Realizar la solicitud HTTP a la API de Zabbix y esperar la respuesta
+      const response = await fetch(authURL, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(jsonRpcRequest),
+      });
 
-    // Procesar la respuesta como JSON
-    const data = await response.json();
+      // Procesar la respuesta como JSON
+      const data = await response.json();
 
-    // Deshabilitar la opción predeterminada
-    selectElement.querySelector('option[value=""]').disabled = true;
+      // Limpiar la lista desplegable
+      selectElement.innerHTML = "";
 
-    data.result.forEach(function (item) {
-      var option = document.createElement("option");
+      // Deshabilitar la opción predeterminada
+      selectElement.appendChild(new Option("Seleccione un ítem", "", true, true));
 
-      // Procesar el nombre para eliminar "Interface", lo que está entre paréntesis y ": Alias"
-      var processedName = item.name.replace(/^Interface |\(.*\)|: Alias$/g, "");
+      data.result.forEach(function (item) {
+          var option = document.createElement("option");
 
-      option.value = processedName; // Usar processedName en lugar de item.key_
-      option.text = processedName;
-      selectElement.appendChild(option);
-    });
+          // Procesar el nombre para eliminar "Interface", lo que está entre paréntesis y ": Alias"
+          var processedName = item.name.replace(/^Interface |\(.*\)|: Alias$/g, "");
 
-    // Guardar el valor seleccionado en las variables
-    selectedHost = document.getElementById("host").value;
-    selectedItem = selectElement.value; // Usar selectElement.value para capturar el valor seleccionado
+          option.value = processedName; // Usar processedName en lugar de item.key_
+          option.text = processedName;
+          selectElement.appendChild(option);
+      });
+
+      // Guardar el valor seleccionado en las variable
+      selectedHost = document.getElementById("host").value;
+      // selectedItem se mantiene igual si se desea mantener "Seleccione un ítem" seleccionado
+
   } catch (error) {
-    console.error("Error en la solicitud:", error);
+      console.error("Error en la solicitud:", error);
   }
 }
 
@@ -916,7 +921,7 @@ function convertirDatosHistoricos(datos) {
   // Mapea los datos y realiza las conversiones necesarias
   return datos.map((dato) => ({
     timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp
-    mbps: dato.value / 1000, // Convierte "value" de kbps a Mbps
+    mbps: dato.value / 100000, // Convierte "value" de kbps a Mbps
   }));
 }
 
