@@ -34,7 +34,8 @@ let selectedHost = "";
 let selectedItem = "";
 let selectedMacro = "";
 let selectedTiempo = "";
-let myChart = null; // Variable para almacenar la instancia del gráfico.
+let myChart = null; // Variable para almacenar la instancia de la gráfica
+
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
@@ -530,7 +531,7 @@ function guardarTemplateId() {
 
 
 
-/* 
+
 
 // Función para realizar el inicio de sesión
 async function login() {
@@ -594,138 +595,9 @@ function verificarGruposYRedirigir(username) {
     window.location.href = "formDiscovery.html";
   } else {
     // Redirigir a una página predeterminada si no se encuentra en ningún grupo específico.
-    window.location.href = "pagina_predeterminada.html";
+    window.location.href = "main.html";
   }
 }
-
-
-*/
-
-
-
-
-
-
-
-
-
-async function obtenerGruposDeUsuario(username) {
-  const gruposUsuario = [];
-
-  try {
-    const response = await fetch(authURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        method: "user.get",
-        params: {
-          output: ["usrgrps"],
-          selectUsrgrps: "extend",
-          filter: {
-            alias: [username], // Ajusta esto según cómo estén almacenados los nombres de usuario en Zabbix
-          },
-        },
-        auth: authToken, // Asegúrate de que authToken esté disponible
-        id: 1,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.result && data.result.length > 0) {
-        const grupos = data.result[0].usrgrps;
-        grupos.forEach((grupo) => {
-          gruposUsuario.push(grupo.name);
-        });
-      }
-    } else {
-      console.error("Error al obtener los grupos del usuario:", response.statusText);
-    }
-  } catch (error) {
-    console.error("Error en la solicitud a la API de Zabbix:", error);
-  }
-
-  return gruposUsuario;
-}
-
-async function login() {
-  event.preventDefault(); // Evita que el formulario se envíe automáticamente
-
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  const params = {
-    username: username,
-    password: password,
-  };
-
-  try {
-    const response = await fetch(authURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        method: "user.login",
-        params: params,
-        id: 1,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.result !== undefined) {
-        authToken = data.result;
-
-        // Almacenar el token en el almacenamiento local
-        localStorage.setItem("authToken", authToken);
-
-        console.log("Inicio de sesión exitoso.");
-        console.log("Token de autenticación:", authToken);
-
-        // Realiza una consulta adicional para obtener los grupos del usuario
-        const grupos = await obtenerGruposDeUsuario(username);
-
-        // Luego verifica el grupo al que pertenece y redirige
-        if (grupos.includes("14")) {
-          window.location.href = "formMacroGraph.html";
-        } else if (grupos.includes("7")) {
-          window.location.href = "formDiscovery.html";
-        } else if (grupos.includes("3")) {
-          window.location.href = "main.html";
-        } else {
-          // Redirigir a una página predeterminada si no se encuentra el grupo
-          window.location.href = "formDiscovery.html";
-        }
-      } else {
-        // Mostrar una alerta de usuario o contraseña incorrecta
-        alert("Usuario o contraseña incorrecta.");
-        formularioLogin.reset();
-      }
-    } else {
-      console.error("Error al iniciar sesión:", response.statusText);
-    }
-  } catch (error) {
-    console.error("Error al realizar la solicitud:", error);
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Función para cerrar sesión
 async function logout() {
@@ -1044,7 +916,7 @@ async function obtenerDatosHistoricos(itemDetails) {
         itemids: item.itemid,
         sortfield: "clock",
         sortorder: "DESC",
-        limit: 60,
+        limit: 30,
       },
       auth: authToken,
       id: 2,
@@ -1078,14 +950,20 @@ async function obtenerDatosHistoricos(itemDetails) {
   graficarDatosHistoricos(datosHistoricos);
 }
 
+
+
+
+
+
 // Función para convertir datos históricos
 function convertirDatosHistoricos(datos) {
   // Mapea los datos y realiza las conversiones necesarias
   return datos.map((dato) => ({
-    timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp
+    timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp (asegúrate de que los datos estén en segundos)
     mbps: dato.value / 1000000, // Convierte "value" de kbps a Mbps
   }));
 }
+
 
 function graficarDatosHistoricos(datos) {
   const colores = [
@@ -1113,6 +991,7 @@ function graficarDatosHistoricos(datos) {
     // Si ya existe una instancia de Chart, actualiza los datos en lugar de crear una nueva.
     myChart.data.datasets = datasets;
     myChart.options.plugins.title.text = "Tipo de datos en el eje X"; // Cambia el título al eje X
+    myChart.options.scales.x.time.stepSize = ""; // Restablece el stepSize
     myChart.update(); // Actualiza el gráfico con los nuevos datos.
   } else {
     myChart = new Chart(ctx, {
@@ -1135,6 +1014,7 @@ function graficarDatosHistoricos(datos) {
             type: "time",
             time: {
               unit: "minute",
+              stepSize: "5",
             },
             grid: {
               display: true, // Mostrar líneas en el eje X
@@ -1152,7 +1032,7 @@ function graficarDatosHistoricos(datos) {
             },
             ticks: {
               callback: function (value) {
-                return value + "mbps";
+                return value + " mbps";
               },
             },
             grid: {
@@ -1162,12 +1042,18 @@ function graficarDatosHistoricos(datos) {
         },
         layout: {
           padding: {
-            bottom: 2, // Ajusta el espacio debajo de la gráfica
+            bottom: 6, // Ajusta el espacio debajo de la gráfica
             top: 10, // Añade espacio encima de la gráfica
           },
         },
       },
     });
+
+
+
+
+
+
 
     // Agregar el título "Tiempo" encima de la gráfica
     const tituloEncima = document.createElement("div");
@@ -1219,4 +1105,62 @@ function graficarDatosHistoricos(datos) {
   // Agregar los elementos de la línea de cuadrícula al contenedor del gráfico
   contenedorGrafico.appendChild(cuadriculaX);
   contenedorGrafico.appendChild(cuadriculaY);
+}
+
+
+  // En la función actualizarIntervaloDeTiempo
+  function actualizarIntervaloDeTiempo() {
+    const tiempoDescubrimiento = document.getElementById("tiempo").value;
+    console.log("Nuevo valor de tiempo:", tiempoDescubrimiento);
+  
+    if (tiempoDescubrimiento && !isNaN(tiempoDescubrimiento)) {
+      if (myChart) {
+        const stepSize = tiempoDescubrimiento * 60000; // Convierte minutos a milisegundos
+        console.log("Nuevo valor de stepSize:", stepSize);
+  
+        myChart.options.scales.x.time.stepSize = stepSize;
+        myChart.update();
+      }
+    }
+  }
+  
+
+
+// ...
+
+// Añade el código de D3.js al final de tu archivo
+function setupRealTimeChart() {
+  // Crear un lienzo SVG
+const svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
+
+// Inicializar tus datos
+let data = [];
+
+// Configurar la escala
+const x = d3.scaleLinear().domain([0, data.length]).range([0, width]);
+const y = d3.scaleLinear().domain([0, d3.max(data)]).range([height, 0]);
+
+// Crear una línea
+const line = d3.line().x((d, i) => x(i)).y((d) => y(d));
+
+// Agregar la línea a la gráfica
+svg.append('path').datum(data).attr('class', 'line').attr('d', line);
+
+// Actualizar la gráfica
+function updateChart(newData) {
+  data.push(newData);
+  // Actualiza los dominios de las escalas si es necesario
+  x.domain([0, data.length]);
+  y.domain([0, d3.max(data)]);
+
+  // Selecciona la línea y actualiza los atributos "d" con la nueva línea de datos
+  svg.select('.line').attr('d', line);
+}
+
+// Llamar a updateChart con nuevos datos (debes adaptar esto a tu lógica de obtención de datos)
+setInterval(function () {
+  const newData = obtenerNuevosDatos(); // Reemplaza esto con tu lógica real de obtención de datos
+  updateChart(newData);
+}, 1000); // Actualizar cada segundo (puedes ajustar el intervalo según tus necesidades)
+
 }
