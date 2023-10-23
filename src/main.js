@@ -966,6 +966,10 @@ function convertirDatosHistoricos(datos) {
 
 
 function graficarDatosHistoricos(datos) {
+
+  const nombreHost = document.getElementById("host").value;
+
+
   const colores = [
     "rgba(75, 192, 192, 1)",
     "rgba(192, 75, 75, 1)",
@@ -1003,7 +1007,8 @@ function graficarDatosHistoricos(datos) {
         plugins: {
           title: {
             display: true,
-            text: "Cantidad de datos",
+            text: `Cantidad de datos ${nombreHost}`,
+
             font: {
               size: 0, // Tamaño del texto en el eje Y
             },
@@ -1056,14 +1061,13 @@ function graficarDatosHistoricos(datos) {
 
 
     // Agregar el título "Tiempo" encima de la gráfica
-    const tituloEncima = document.createElement("div");
-    tituloEncima.textContent =
-      "Grafico comparativo de Bits Received vs Bits Sent";
-    tituloEncima.style.textAlign = "center"; // Centrar el texto
-    tituloEncima.style.color = "White"; // Cambiar el color del texto
-    tituloEncima.style.fontSize = "20px"; // Ajusta el tamaño del texto
+    const tituloHost = document.createElement("div");
+    tituloHost.textContent = ("Nombre Host: " +nombreHost);
+    tituloHost.style.textAlign = "center"; // Centrar el texto
+    tituloHost.style.color = "White"; // Cambiar el color del texto
+    tituloHost.style.fontSize = "20px"; // Ajusta el tamaño del texto
 
-    document.getElementById("myChart").before(tituloEncima);
+    document.getElementById("myChart").before(tituloHost);
 
     // Agregar el título "Tiempo" debajo de la gráfica
     const tituloTiempo = document.createElement("div");
@@ -1094,7 +1098,7 @@ function graficarDatosHistoricos(datos) {
   cuadriculaY.style.left = "50%"; // Alinea la línea de cuadrícula en el centro
   cuadriculaY.style.transform = "translateX(-50%)"; // Alinea la línea de cuadrícula en el centro horizontalmente
 
-  // Cambiar el color de fondo del contenedor del gráfico a negro
+  // Cambiar el color de fondo del contenedor del gráfico a blan
   const contenedorGrafico = document.getElementById("myChart");
   contenedorGrafico.style.backgroundColor = "white"; // Cambiar el color de fondo del contenedor
 
@@ -1105,62 +1109,4 @@ function graficarDatosHistoricos(datos) {
   // Agregar los elementos de la línea de cuadrícula al contenedor del gráfico
   contenedorGrafico.appendChild(cuadriculaX);
   contenedorGrafico.appendChild(cuadriculaY);
-}
-
-
-  // En la función actualizarIntervaloDeTiempo
-  function actualizarIntervaloDeTiempo() {
-    const tiempoDescubrimiento = document.getElementById("tiempo").value;
-    console.log("Nuevo valor de tiempo:", tiempoDescubrimiento);
-  
-    if (tiempoDescubrimiento && !isNaN(tiempoDescubrimiento)) {
-      if (myChart) {
-        const stepSize = tiempoDescubrimiento * 60000; // Convierte minutos a milisegundos
-        console.log("Nuevo valor de stepSize:", stepSize);
-  
-        myChart.options.scales.x.time.stepSize = stepSize;
-        myChart.update();
-      }
-    }
-  }
-  
-
-
-// ...
-
-// Añade el código de D3.js al final de tu archivo
-function setupRealTimeChart() {
-  // Crear un lienzo SVG
-const svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
-
-// Inicializar tus datos
-let data = [];
-
-// Configurar la escala
-const x = d3.scaleLinear().domain([0, data.length]).range([0, width]);
-const y = d3.scaleLinear().domain([0, d3.max(data)]).range([height, 0]);
-
-// Crear una línea
-const line = d3.line().x((d, i) => x(i)).y((d) => y(d));
-
-// Agregar la línea a la gráfica
-svg.append('path').datum(data).attr('class', 'line').attr('d', line);
-
-// Actualizar la gráfica
-function updateChart(newData) {
-  data.push(newData);
-  // Actualiza los dominios de las escalas si es necesario
-  x.domain([0, data.length]);
-  y.domain([0, d3.max(data)]);
-
-  // Selecciona la línea y actualiza los atributos "d" con la nueva línea de datos
-  svg.select('.line').attr('d', line);
-}
-
-// Llamar a updateChart con nuevos datos (debes adaptar esto a tu lógica de obtención de datos)
-setInterval(function () {
-  const newData = obtenerNuevosDatos(); // Reemplaza esto con tu lógica real de obtención de datos
-  updateChart(newData);
-}, 1000); // Actualizar cada segundo (puedes ajustar el intervalo según tus necesidades)
-
 }
