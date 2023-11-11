@@ -336,9 +336,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             jsonrpc: "2.0",
             method: "usermacro.delete",
             params: {
-              hostmacroid: 26808, // El ID de la macro que deseas eliminar
+              hostmacroid: 26896, // El ID de la macro que deseas eliminar
               hostid: 23522,
-              auth: '68f08dd04965819aebf23bc2659a239f' // Tu token de autenticación
+              auth: "d5aef56bf650141b17ee54a7f1e51bdc", // Tu token de autenticación
             },
             id: 1,
           };
@@ -556,33 +556,88 @@ async function login() {
         localStorage.setItem("authToken", authToken);
         console.log("Inicio de sesión exitoso.");
         console.log("Token de autenticación:", authToken);
-        // Lógica para verificar grupos y redirigir en función del grupo
-        verificarGruposYRedirigir(username);
-      } else {
-        alert("Usuario o contraseña incorrecta.");
-        formularioLogin.reset();
+
+
+
+        
+
+
+
+
+
+
+            // Realiza una solicitud para obtener los grupos del usuario
+            const gruposResponse = await fetch(zabbixURL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "usergroup.get",
+                params: {
+                  output: "extend",
+                },
+                auth: authToken, // Usando el token de autenticación
+                id: 2, // Puedes usar un ID diferente si es necesario
+              }),
+            });
+            if (gruposResponse.ok) {
+              const gruposData = await gruposResponse.json();
+              if (gruposData.result) {
+                // Obtén la lista de grupos del usuario
+                const grupos = gruposData.result;
+                // A continuación, verifica los grupos y redirige según la lógica adecuada.
+                verificarGruposYRedirigir(username, grupos);
+              }
+            }
+          }else {
+            alert("Usuario o contraseña incorrecta.");
+            formularioLogin.reset();
+          }
+        } else {
+          console.error("Error al iniciar sesión:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error al realizar la solicitud:", error);
       }
-    } else {
-      console.error("Error al iniciar sesión:", response.statusText);
-    }
-  } catch (error) {
-    console.error("Error al realizar la solicitud:", error);
-  }
-}
-function verificarGruposYRedirigir(username) {
-  // Realiza una consulta a la API de Zabbix para obtener información sobre el usuario
-  // y sus grupos correspondientes.
-  // Lógica para verificar grupos y redirigir al usuario a la página adecuada en función de su grupo.
-  // Por ejemplo:
-  if (username.grupo === "7") {
-    window.location.href = "formMacroGraph.html";
-  } else if (username.grupo === "14") {
-    window.location.href = "formDiscovery.html";
-  } else {
-    // Redirigir a una página predeterminada si no se encuentra en ningún grupo específico.
-    window.location.href = "main.html";
-  }
-}
+
+      }
+
+
+
+
+
+
+
+
+      function verificarGruposYRedirigir(username, grupos) {
+        // Lógica para verificar grupos y redirigir al usuario a la página adecuada en función de su grupo.
+        // Por ejemplo:
+        for (const grupo of grupos) {
+          if (grupo.name === "Grupo1") {
+            window.location.href = "formMacroGraph.html";
+            return; // Sale de la función después de la redirección
+          } else if (grupo.name === "Grupo2") {
+            window.location.href = "formDiscovery.html";
+            return;
+          }
+        }
+        // Redirigir a una página predeterminada si no se encuentra en ningún grupo específico.
+        window.location.href = "main.html";
+      }
+      
+
+
+
+
+
+
+
+
+
+
+
 // Función para cerrar sesión
 async function logout() {
   if (authToken) {
@@ -1102,7 +1157,3 @@ function setupRealTimeChart() {
   }, 1000); // Actualizar cada segundo (puedes ajustar el intervalo según tus necesidades)
 
 }
-
-
-
-
