@@ -370,38 +370,40 @@ function updateSuggestions(suggestions) {
       }
     };
 
-
+    // Lista global para almacenar todas las hostmacroids
+let listaHostMacroids = [];    
     // Agregar un evento para el botón de actualizar
     if (btnActualizar) {
-   // Dentro del evento del botón de actualizar
-  btnActualizar.addEventListener("click", async function () {
-    event.preventDefault();
-
-    // Obtener el valor seleccionado del host, el ítem y el tiempo
-    const hostSelected = selectedHost;
-    const tiempoValue = itemTiempo.value;
-
-    // Verificar si se ha seleccionado un host, un ítem y un tiempo válido (número)
-    if (!hostSelected || !selectedItem || isNaN(parseFloat(tiempoValue))) {
-      alert("Por favor, complete los datos correctamente.");
-      return;
-    }
-    // Obtener el hostid a partir del nombre del host
-    const hostId = await obtenerHostIdPorNombre(hostSelected);
-
-    if (hostId) {
-      // Crear el objeto para la solicitud de creación de macro
-      const createMacroRequest = {
-        jsonrpc: "2.0",
-        method: "usermacro.create",
-        params: {
-          hostid: hostId, // El ID del host en el que se creará la macro
-          macro: `{$DELAY_IF:"${selectedItem}"}`, // El nombre de la macro que se creará
-          value: tiempoValue + 'm', // El valor de la nueva macro (agregar 'm' aquí si es necesario)
-        },
-        auth: authToken,
-        id: 1,
-      };
+      btnActualizar.addEventListener("click", async function () {
+        event.preventDefault();
+    
+        // Obtener el valor seleccionado del host, el ítem y el tiempo
+        const hostSelected = selectedHost;
+        const tiempoValue = itemTiempo.value;
+    
+        // Verificar si se ha seleccionado un host, un ítem y un tiempo válido (número)
+        if (!hostSelected || !selectedItem || isNaN(parseFloat(tiempoValue))) {
+          alert("Por favor, complete los datos correctamente.");
+          return;
+        }
+    
+        // Obtener el hostid a partir del nombre del host
+        const hostId = await obtenerHostIdPorNombre(hostSelected);
+    
+        if (hostId) {
+          // Crear el objeto para la solicitud de creación de macro
+          const createMacroRequest = {
+            jsonrpc: "2.0",
+            method: "usermacro.create",
+            params: {
+              hostid: hostId, // El ID del host en el que se creará la macro
+              macro: `{$DELAY_IF:"${selectedItem}"}`, // El nombre de la macro que se creará
+              value: tiempoValue + 'm', // El valor de la nueva macro (agregar 'm' aquí si es necesario)
+            },
+            auth: authToken,
+            id: 1,
+          };
+    
           // Realizar la solicitud POST a la API de Zabbix para crear la macro
           try {
             const response = await fetch(authURL, {
@@ -411,16 +413,25 @@ function updateSuggestions(suggestions) {
               },
               body: JSON.stringify(createMacroRequest),
             });
-
+    
             if (response.ok) {
               const data = await response.json();
               console.log("Respuesta de la API de Zabbix:", data);
+    
+         // Almacenar la hostmacroids en la lista
+      if (data.result.hostmacroids && data.result.hostmacroids.length > 0) {
+        listaHostMacroids.push(data.result.hostmacroids[0].toString()); // Asegúrate de convertirlo a cadena
+        console.log("Lista de hostmacroids:", listaHostMacroids);
+      } else {
+        console.error("No se encontraron hostmacroids en la respuesta de la API de Zabbix");
+        // Puedes manejar esta situación de otra manera, según tus necesidades
+      }
 
-              //const macroIds = data.result.macroids[0];
+         
               // Si la creación fue exitosa, puedes realizar acciones adicionales aquí si es necesario
-
+    
               alert("Macro creada exitosamente.");
-
+    
               formMacro.reset();
               selectElemento.innerHTML = "";
               // Deshabilitar la opción predeterminada
@@ -447,80 +458,7 @@ function updateSuggestions(suggestions) {
 
 
 
-
-
-    if (btnEliminar) {
-      // Dentro del evento del botón de actualizar
-      btnEliminar.addEventListener("click", async function () {
-        event.preventDefault();
-
-        // Obtener el valor seleccionado del host y la macro
-        const hostSelected = selectedHost;
-        const macroId = macroIds;
-
-        // Verificar si se ha seleccionado un host y una macro
-        if (!hostSelected || !selectedMacro) {
-          alert("Por favor, complete los datos.");
-          return;
-        }
-
-        // Obtener el hostid a partir del nombre del host
-        const hostId = await obtenerHostIdPorNombre(hostSelected);
-
-        if (hostId) {
-          // Crear el objeto para la solicitud de creación de macro
-          const removeMacroRequest = {
-            jsonrpc: "2.0",
-            method: "usermacro.delete",
-            params: {
-              hostid: hostId,
-              macro: [macroId],
-            },
-            auth: authToken,
-            id: 1,
-          };
-
-          // Realizar la solicitud POST a la API de Zabbix para crear la macro
-          try {
-            const response = await fetch(authURL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(removeMacroRequest),
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              console.log("Respuesta de la API de Zabbix:", data);
-
-
-              alert("Macro eliminada exitosamente.");
-
-              formMacro.reset();
-              selectElemento.innerHTML = "";
-              // Deshabilitar la opción predeterminada
-              selectElemento.appendChild(
-                new Option("Seleccione un ítem", "", false, false)
-              );
-            } else {
-              console.error("Error al eliminar la macro:", response.statusText);
-              alert(
-                "Error al eliminar la macro. Por favor, inténtelo nuevamente."
-              );
-            }
-          } catch (error) {
-            console.error("Error en la solicitud a la API de Zabbix:", error);
-            alert(
-              "Error en la solicitud a la API de Zabbix. Por favor, inténtelo nuevamente."
-            );
-          }
-        }
-      });
-    }
-
-
-
+    
 
 
   }
