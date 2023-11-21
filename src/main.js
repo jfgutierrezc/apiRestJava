@@ -737,10 +737,51 @@ async function obtenerInformacionTarea(taskId) {
 
     if(btnEliminar){
 
-      btnExecuteNow.addEventListener("click", async function () {
+      btnEliminar.addEventListener("click", async function () {
         event.preventDefault();
 
+ if (listaHostMacroids.length > 0) {
+      // Lógica para eliminar los macroids
+      for (const macroid of listaHostMacroids) {
+        // Lógica para eliminar el macroid utilizando la API de Zabbix
+        const eliminarMacroidRequest = {
+          jsonrpc: "2.0",
+          method: "usermacro.delete",
+          params: [macroid], // Pasar el macroid como parámetro
+          auth: authToken,
+          id: 1,
+        };
 
+        try {
+          const response = await fetch(authURL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(eliminarMacroidRequest),
+          });
+
+          if (!response.ok) {
+            throw new Error('Error al eliminar el macroid: ' + response.statusText);
+          }
+
+          const data = await response.json();
+          console.log("Respuesta de la API de Zabbix al eliminar el macroid:", data);
+        } catch (error) {
+          console.error("Error en la solicitud a la API de Zabbix:", error);
+          // Puedes manejar el error según tus necesidades
+        }
+      }
+
+      // Limpiar la lista después de eliminar los macroids
+      listaHostMacroids = [];
+      console.log("Las macros han sido eliminados");
+
+         // Mostrar mensaje en la interfaz de usuario
+         alert("Todos los macroids han sido eliminados correctamente");
+    } else {
+      console.log("No hay macroids para eliminar");
+    }
 
 
 
