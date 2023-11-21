@@ -16,6 +16,7 @@ const itemTiempo = document.getElementById("tiempo");
 const btnActualizar = document.getElementById("botonActualizar");
 const btnEliminar = document.getElementById("botonEliminar");
 const selectElemento = document.getElementById("itemInterface");
+const btnExecuteNow = document.getElementById("botonExecuteNow");
 
 let departamentos = [];
 let data;
@@ -370,6 +371,8 @@ function updateSuggestions(suggestions) {
       }
     };
 
+
+
     // Lista global para almacenar todas las hostmacroids
 let listaHostMacroids = [];    
     // Agregar un evento para el botón de actualizar
@@ -417,7 +420,49 @@ let listaHostMacroids = [];
             if (response.ok) {
               const data = await response.json();
               console.log("Respuesta de la API de Zabbix:", data);
-    
+    // Obtener la discovery rule asociada al host
+const discoveryRuleResponse = await fetch(authURL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    jsonrpc: "2.0",
+    method: "discoveryrule.get",
+    params: {
+      output: ["itemid"], 
+      hostids: hostId,
+      filter: {
+        key_: "net.if.discovery",
+      },
+    },
+    auth: authToken,
+    id: 2, 
+  }),
+});
+
+if (!discoveryRuleResponse.ok) {
+  throw new Error('Error al obtener la discovery rule: ' + discoveryRuleResponse.statusText);
+}
+
+// Procesar la respuesta para obtener el itemid de la discovery rule
+const discoveryRuleData = await discoveryRuleResponse.json();
+if (discoveryRuleData.result && discoveryRuleData.result.length > 0) {
+  const discoveryRuleItemId = discoveryRuleData.result[0].itemid;
+  console.log("Itemid de la discovery rule:", discoveryRuleItemId);
+// Crear tarea y obtener taskid
+const taskId = await crearTareaYObtenerTaskId(discoveryRuleItemId);
+
+// Obtener información de la tarea utilizando taskid
+await obtenerInformacionTarea(taskId);
+  // Ahora puedes usar el discoveryRuleItemId según tus necesidades
+} else {
+  console.error("No se encontró la discovery rule asociada al host");
+  // Puedes manejar esta situación de otra manera, según tus necesidades
+}
+
+
+
          // Almacenar la hostmacroids en la lista
       if (data.result.hostmacroids && data.result.hostmacroids.length > 0) {
         listaHostMacroids.push(data.result.hostmacroids[0].toString()); // Asegúrate de convertirlo a cadena
@@ -452,8 +497,258 @@ let listaHostMacroids = [];
           }
         }
       });
+
+      async function crearTareaYObtenerTaskId(discoveryRuleItemId) {
+        // Lógica para crear la tarea y obtener el taskid
+        // Usar el discoveryRuleItemId según tus necesidades
+      
+        const createTaskRequest = {
+          jsonrpc: "2.0",
+          method: "task.create",
+          params: {
+            type: 6,
+            request: {
+              itemid: discoveryRuleItemId,
+            },
+          },
+          auth: "9ba1e59db9f78b97ebcc8a28a72c1935",
+          id: 1,
+        };
+      
+        try {
+          const createTaskResponse = await fetch(authURL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(createTaskRequest),
+          });
+      
+          if (!createTaskResponse.ok) {
+            throw new Error('Error al crear la tarea: ' + createTaskResponse.statusText);
+          }
+      
+          const createTaskData = await createTaskResponse.json();
+          console.log("Respuesta de la API al crear la tarea:", createTaskData);
+      
+          if (createTaskData.result && createTaskData.result.taskids.length > 0) {
+            const taskId = createTaskData.result.taskids[0];
+            console.log("Taskid de la tarea creada:", taskId);
+            return taskId;
+          } else {
+            console.error("No se pudo obtener el taskid de la tarea creada");
+            // Puedes manejar esta situación de otra manera, según tus necesidades
+            return null;
+          }
+        } catch (error) {
+          console.error("Error al crear la tarea:", error);
+          // Puedes manejar esta situación de otra manera, según tus necesidades
+          return null;
+        }
+      }
+      
+      async function obtenerInformacionTarea(taskId) {
+        // Lógica para obtener información de la tarea utilizando taskid
+        // Usar el taskId según tus necesidades
+      
+        const getTaskRequest = {
+          jsonrpc: "2.0",
+          method: "task.get",
+          params: {
+            output: "extend",
+            taskids: taskId,
+          },
+          auth: "9ba1e59db9f78b97ebcc8a28a72c1935",
+          id: 1,
+        };
+      
+        const getTaskResponse = await fetch(authURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(getTaskRequest),
+        });
+      
+        if (!getTaskResponse.ok) {
+          throw new Error('Error al obtener información de la tarea: ' + getTaskResponse.statusText);
+        }
+      
+        const getTaskData = await getTaskResponse.json();
+        console.log("Información de la tarea:", getTaskData.result);
+      }
+      
     }
 
+
+
+    if (btnExecuteNow){
+
+      btnExecuteNow.addEventListener("click", async function () {
+      event.preventDefault();
+
+// Obtener el valor seleccionado del host y la discovery rule
+const hostSelected = selectedHost;
+
+// Verificar si se ha seleccionado un host válido
+if (!hostSelected) {
+  alert("Por favor, seleccione un host.");
+  return;
+}
+
+// Obtener el hostid a partir del nombre del host
+const hostId = await obtenerHostIdPorNombre(hostSelected);
+
+if (hostId) {
+  try {
+    // Obtener la discovery rule asociada al host
+    const discoveryRuleResponse = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "discoveryrule.get",
+        params: {
+          output: ["itemid"],
+          hostids: hostId,
+          filter: {
+            key_: "net.if.discovery",
+          },
+        },
+        auth: authToken,
+        id: 2,
+      }),
+    });
+
+    if (!discoveryRuleResponse.ok) {
+      throw new Error('Error al obtener la discovery rule: ' + discoveryRuleResponse.statusText);
+    }
+
+    // Procesar la respuesta para obtener el itemid de la discovery rule
+    const discoveryRuleData = await discoveryRuleResponse.json();
+    if (discoveryRuleData.result && discoveryRuleData.result.length > 0) {
+      const discoveryRuleItemId = discoveryRuleData.result[0].itemid;
+      console.log("Itemid de la discovery rule:", discoveryRuleItemId);
+
+      // Crear tarea y obtener taskid
+      const taskId = await crearTareaYObtenerTaskId(discoveryRuleItemId);
+
+      // Obtener información de la tarea utilizando taskid
+      await obtenerInformacionTarea(taskId);
+    } else {
+      console.error("No se encontró la discovery rule asociada al host");
+      // Puedes manejar esta situación de otra manera, según tus necesidades
+    }
+  } catch (error) {
+    console.error("Error al ejecutar la acción: ", error);
+    alert("Error al ejecutar la acción. Por favor, inténtelo nuevamente.");
+  }
+}
+
+
+async function crearTareaYObtenerTaskId(discoveryRuleItemId) {
+  // Lógica para crear la tarea y obtener el taskid
+  // Usar el discoveryRuleItemId según tus necesidades
+
+  const createTaskRequest = {
+    jsonrpc: "2.0",
+    method: "task.create",
+    params: {
+      type: 6,
+      request: {
+        itemid: discoveryRuleItemId,
+      },
+    },
+    auth: "9ba1e59db9f78b97ebcc8a28a72c1935",
+    id: 1,
+  };
+
+  try {
+    const createTaskResponse = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(createTaskRequest),
+    });
+
+    if (!createTaskResponse.ok) {
+      throw new Error('Error al crear la tarea: ' + createTaskResponse.statusText);
+    }
+
+    const createTaskData = await createTaskResponse.json();
+    console.log("Respuesta de la API al crear la tarea:", createTaskData);
+
+    if (createTaskData.result && createTaskData.result.taskids.length > 0) {
+      const taskId = createTaskData.result.taskids[0];
+      console.log("Taskid de la tarea creada:", taskId);
+      return taskId;
+    } else {
+      console.error("No se pudo obtener el taskid de la tarea creada");
+      // Puedes manejar esta situación de otra manera, según tus necesidades
+      return null;
+    }
+  } catch (error) {
+    console.error("Error al crear la tarea:", error);
+    // Puedes manejar esta situación de otra manera, según tus necesidades
+    return null;
+  }
+}
+
+async function obtenerInformacionTarea(taskId) {
+  // Lógica para obtener información de la tarea utilizando taskid
+  // Usar el taskId según tus necesidades
+
+  const getTaskRequest = {
+    jsonrpc: "2.0",
+    method: "task.get",
+    params: {
+      output: "extend",
+      taskids: taskId,
+    },
+    auth: "9ba1e59db9f78b97ebcc8a28a72c1935",
+    id: 1,
+  };
+
+  const getTaskResponse = await fetch(authURL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(getTaskRequest),
+  });
+
+  if (!getTaskResponse.ok) {
+    throw new Error('Error al obtener información de la tarea: ' + getTaskResponse.statusText);
+  }
+
+  const getTaskData = await getTaskResponse.json();
+  console.log("Información de la tarea:", getTaskData.result);
+}
+
+
+      });
+
+
+    }
+
+
+    if(btnEliminar){
+
+      btnExecuteNow.addEventListener("click", async function () {
+        event.preventDefault();
+
+
+
+
+
+
+        
+      });
+
+    }
    
 
 
@@ -462,6 +757,8 @@ let listaHostMacroids = [];
 
 
   }
+
+
 });
 
 // Llena el select de departamentos con las opciones correspondientes
@@ -1181,46 +1478,6 @@ function graficarDatosHistoricos(datos) {
 
 
 
-
-
-
-
-
-function eliminarMacro(hostId, macroId) {
-  const deleteMacroRequest = {
-    jsonrpc: "2.0",
-    method: "usermacro.delete",
-    params: {
-      hostid: hostId,
-      macro: [macroId],
-    },
-    auth: authToken,
-    id: 1,
-  };
-
-  fetch(authURL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(deleteMacroRequest),
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error("Error al eliminar la macro");
-      }
-    })
-    .then((data) => {
-      console.log("Respuesta de la API de Zabbix al eliminar macro:", data);
-      alert("Macro eliminada exitosamente.");
-    })
-    .catch((error) => {
-      console.error("Error al eliminar la macro:", error);
-      alert("Error al eliminar la macro. Por favor, inténtelo nuevamente.");
-    });
-}
 
 
 
