@@ -1,4 +1,3 @@
-// Selección de elementos del DOM
 const selectDepartamento = document.getElementById("departamento");
 const selectMunicipio = document.getElementById("municipio");
 const selectMacros = document.getElementById("macros");
@@ -27,9 +26,9 @@ let selectedLongitud = "";
 const authURL = "http://10.144.2.160/zabbix/api_jsonrpc.php";
 let selectedMunicipio = "";
 let selectedDepartamento = "";
-let hostName = ""; // Variable global para el nombre del host
-let ipAddres = ""; // Variable global para la dirección IP
-let comunidad = ""; // Variable global para la comunidad SNMP
+let hostName = ""; 
+let ipAddres = ""; 
+let comunidad = ""; 
 let authToken = null;
 let selectedTemplateId = "";
 let selectedHost = "";
@@ -37,7 +36,7 @@ let selectedItem = "";
 let selectedMacro = "";
 let selectedTiempo = "";
 let macroIds = "";
-let myChart = null; // Variable para almacenar la instancia del gráfico.
+let myChart = null; 
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
