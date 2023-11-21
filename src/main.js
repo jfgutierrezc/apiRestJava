@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Si hay un token almacenado, establecerlo como authToken
     authToken = storedToken;
 
-    console.log("Sesión activa encontrada con token:", authToken);
+    
     // Verificar si el usuario está tratando de acceder a "index.html" manualmente
     if (currentPath.includes("index.html")) {
       // Determina la página a la que debe redirigirse (puedes usar "main.html" o "formMacroGraph.html" según tu lógica)
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = redirectTo;
     }
   } else {
-    console.log("No se encontró una sesión activa.");
+    
 
     // Verificar si el usuario está tratando de acceder a "main.html" manualmente
     if (currentPath.includes("main.html")) {
@@ -82,28 +82,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (selectIp) {
       selectIp.addEventListener("change", function () {
         const ipAddres = selectIp.value;
-        console.log(ipAddres);
+        
       });
     }
 
     if (selectHost) {
       selectIp.addEventListener("change", function () {
         const ipAddres = selectIp.value;
-        console.log(ipAddres);
+        
       });
     }
 
     if (selectHost) {
       selectHost.addEventListener("change", function () {
         const hostName = selectHost.value;
-        console.log(hostName);
+        
       });
     }
 
     if (selectComunidad) {
       selectComunidad.addEventListener("change", function () {
         const comunidad = selectComunidad.value;
-        console.log(comunidad);
+        
       });
     }
 
@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         })
         .catch((error) => {
-          console.log("Error en la conexión: " + error);
+          
         });
     }
 
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             id: 1,
           };
 
-          console.log(hostCreate);
+          
 
           // Realiza la solicitud POST a la API de Zabbix
           fetch(authURL, {
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             .then((response) => response.json())
             .then((data) => {
               // Maneja la respuesta de la API aquí
-              console.log("Respuesta de la API de Zabbix:", data);
+              
               alert("Host creado exitosamente.");
               formulario.reset();
             })
@@ -232,8 +232,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       .addEventListener("change", function () {
         selectedItem = this.value;
 
-        console.log("Valor seleccionado (Host):", selectedHost);
-        console.log("Valor seleccionado (Item):", selectedItem);
+        
+        
       });
 
     // Asignar la función llenarListaDesplegable al evento onchange del campo host
@@ -419,7 +419,7 @@ let listaHostMacroids = [];
     
             if (response.ok) {
               const data = await response.json();
-              console.log("Respuesta de la API de Zabbix:", data);
+              
     // Obtener la discovery rule asociada al host
 const discoveryRuleResponse = await fetch(authURL, {
   method: "POST",
@@ -449,7 +449,7 @@ if (!discoveryRuleResponse.ok) {
 const discoveryRuleData = await discoveryRuleResponse.json();
 if (discoveryRuleData.result && discoveryRuleData.result.length > 0) {
   const discoveryRuleItemId = discoveryRuleData.result[0].itemid;
-  console.log("Itemid de la discovery rule:", discoveryRuleItemId);
+  
 // Crear tarea y obtener taskid
 const taskId = await crearTareaYObtenerTaskId(discoveryRuleItemId);
 
@@ -466,7 +466,7 @@ await obtenerInformacionTarea(taskId);
          // Almacenar la hostmacroids en la lista
       if (data.result.hostmacroids && data.result.hostmacroids.length > 0) {
         listaHostMacroids.push(data.result.hostmacroids[0].toString()); // Asegúrate de convertirlo a cadena
-        console.log("Lista de hostmacroids:", listaHostMacroids);
+        
       } else {
         console.error("No se encontraron hostmacroids en la respuesta de la API de Zabbix");
         // Puedes manejar esta situación de otra manera, según tus necesidades
@@ -529,11 +529,11 @@ await obtenerInformacionTarea(taskId);
           }
       
           const createTaskData = await createTaskResponse.json();
-          console.log("Respuesta de la API al crear la tarea:", createTaskData);
+          
       
           if (createTaskData.result && createTaskData.result.taskids.length > 0) {
             const taskId = createTaskData.result.taskids[0];
-            console.log("Taskid de la tarea creada:", taskId);
+            
             return taskId;
           } else {
             console.error("No se pudo obtener el taskid de la tarea creada");
@@ -575,7 +575,7 @@ await obtenerInformacionTarea(taskId);
         }
       
         const getTaskData = await getTaskResponse.json();
-        console.log("Información de la tarea:", getTaskData.result);
+        
       }
       
     }
@@ -630,7 +630,7 @@ if (hostId) {
     const discoveryRuleData = await discoveryRuleResponse.json();
     if (discoveryRuleData.result && discoveryRuleData.result.length > 0) {
       const discoveryRuleItemId = discoveryRuleData.result[0].itemid;
-      console.log("Itemid de la discovery rule:", discoveryRuleItemId);
+      
 
       // Crear tarea y obtener taskid
       const taskId = await crearTareaYObtenerTaskId(discoveryRuleItemId);
@@ -679,11 +679,11 @@ async function crearTareaYObtenerTaskId(discoveryRuleItemId) {
     }
 
     const createTaskData = await createTaskResponse.json();
-    console.log("Respuesta de la API al crear la tarea:", createTaskData);
+    
 
     if (createTaskData.result && createTaskData.result.taskids.length > 0) {
       const taskId = createTaskData.result.taskids[0];
-      console.log("Taskid de la tarea creada:", taskId);
+      
       return taskId;
     } else {
       console.error("No se pudo obtener el taskid de la tarea creada");
@@ -725,7 +725,7 @@ async function obtenerInformacionTarea(taskId) {
   }
 
   const getTaskData = await getTaskResponse.json();
-  console.log("Información de la tarea:", getTaskData.result);
+  
 }
 
 
@@ -766,7 +766,7 @@ async function obtenerInformacionTarea(taskId) {
           }
 
           const data = await response.json();
-          console.log("Respuesta de la API de Zabbix al eliminar el macroid:", data);
+          
         } catch (error) {
           console.error("Error en la solicitud a la API de Zabbix:", error);
           // Puedes manejar el error según tus necesidades
@@ -775,14 +775,155 @@ async function obtenerInformacionTarea(taskId) {
 
       // Limpiar la lista después de eliminar los macroids
       listaHostMacroids = [];
-      console.log("Las macros han sido eliminados");
+      
 
          // Mostrar mensaje en la interfaz de usuario
-         alert("Todos los macroids han sido eliminados correctamente");
+         alert("Las macros  han sido eliminados correctamente");
     } else {
-      console.log("No hay macroids para eliminar");
+      
     }
 
+
+    // Obtener el valor seleccionado del host y la discovery rule
+const hostSelected = selectedHost;
+
+// Verificar si se ha seleccionado un host válido
+if (!hostSelected) {
+  alert("Por favor, seleccione un host.");
+  return;
+}
+
+// Obtener el hostid a partir del nombre del host
+const hostId = await obtenerHostIdPorNombre(hostSelected);
+
+if (hostId) {
+  try {
+    // Obtener la discovery rule asociada al host
+    const discoveryRuleResponse = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "discoveryrule.get",
+        params: {
+          output: ["itemid"],
+          hostids: hostId,
+          filter: {
+            key_: "net.if.discovery",
+          },
+        },
+        auth: authToken,
+        id: 2,
+      }),
+    });
+
+    if (!discoveryRuleResponse.ok) {
+      throw new Error('Error al obtener la discovery rule: ' + discoveryRuleResponse.statusText);
+    }
+
+    // Procesar la respuesta para obtener el itemid de la discovery rule
+    const discoveryRuleData = await discoveryRuleResponse.json();
+    if (discoveryRuleData.result && discoveryRuleData.result.length > 0) {
+      const discoveryRuleItemId = discoveryRuleData.result[0].itemid;
+      
+
+      // Crear tarea y obtener taskid
+      const taskId = await crearTareaYObtenerTaskId(discoveryRuleItemId);
+
+      // Obtener información de la tarea utilizando taskid
+      await obtenerInformacionTarea(taskId);
+    } else {
+      console.error("No se encontró la discovery rule asociada al host");
+      // Puedes manejar esta situación de otra manera, según tus necesidades
+    }
+  } catch (error) {
+    console.error("Error al ejecutar la acción: ", error);
+    alert("Error al ejecutar la acción. Por favor, inténtelo nuevamente.");
+  }
+}
+
+
+async function crearTareaYObtenerTaskId(discoveryRuleItemId) {
+  // Lógica para crear la tarea y obtener el taskid
+  // Usar el discoveryRuleItemId según tus necesidades
+
+  const createTaskRequest = {
+    jsonrpc: "2.0",
+    method: "task.create",
+    params: {
+      type: 6,
+      request: {
+        itemid: discoveryRuleItemId,
+      },
+    },
+    auth: "9ba1e59db9f78b97ebcc8a28a72c1935",
+    id: 1,
+  };
+
+  try {
+    const createTaskResponse = await fetch(authURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(createTaskRequest),
+    });
+
+    if (!createTaskResponse.ok) {
+      throw new Error('Error al crear la tarea: ' + createTaskResponse.statusText);
+    }
+
+    const createTaskData = await createTaskResponse.json();
+    
+
+    if (createTaskData.result && createTaskData.result.taskids.length > 0) {
+      const taskId = createTaskData.result.taskids[0];
+      
+      return taskId;
+    } else {
+      console.error("No se pudo obtener el taskid de la tarea creada");
+      // Puedes manejar esta situación de otra manera, según tus necesidades
+      return null;
+    }
+  } catch (error) {
+    console.error("Error al crear la tarea:", error);
+    // Puedes manejar esta situación de otra manera, según tus necesidades
+    return null;
+  }
+}
+
+async function obtenerInformacionTarea(taskId) {
+  // Lógica para obtener información de la tarea utilizando taskid
+  // Usar el taskId según tus necesidades
+
+  const getTaskRequest = {
+    jsonrpc: "2.0",
+    method: "task.get",
+    params: {
+      output: "extend",
+      taskids: taskId,
+    },
+    auth: "9ba1e59db9f78b97ebcc8a28a72c1935",
+    id: 1,
+  };
+
+  const getTaskResponse = await fetch(authURL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(getTaskRequest),
+  });
+
+  if (!getTaskResponse.ok) {
+    throw new Error('Error al obtener información de la tarea: ' + getTaskResponse.statusText);
+  }
+
+  const getTaskData = await getTaskResponse.json();
+  
+}
 
 
 
@@ -888,8 +1029,8 @@ function guardarLatitudLongitud() {
       selectedLatitud = seleccion.latitudes[index];
       selectedLongitud = seleccion.longitudes[index];
       // Imprimimos la latitud y longitud en la consola para verificar
-      console.log(selectedLatitud);
-      console.log(selectedLongitud);
+      
+      
     } else {
       // Si no se encontraron latitud y longitud, reseteamos las variables
       selectedLatitud = "";
@@ -952,9 +1093,9 @@ async function obtenerTemplates() {
 function guardarTemplate() {
   const selectedValue = selectElement.value;
   if (selectedValue) {
-    console.log("Valor seleccionado:", selectedValue);
+    
   } else {
-    console.log("No se ha seleccionado ningún valor");
+    
   }
 }
 
@@ -962,7 +1103,7 @@ function guardarTemplateId() {
   const selectedOption = selectElement.selectedOptions[0];
   if (selectedOption) {
     selectedTemplateId = selectedOption.value;
-    console.log("templateid seleccionado:", selectedTemplateId);
+    
   } else {
     console.error("No se ha seleccionado ningún template");
   }
@@ -1002,8 +1143,8 @@ async function login() {
         // Almacenar el token en el almacenamiento local
         localStorage.setItem("authToken", authToken);
 
-        console.log("Inicio de sesión exitoso.");
-        console.log("Token de autenticación:", authToken);
+        
+        
 
         // Redirigir a la página principal después del inicio de sesión
         window.location.href = "main.html";
@@ -1048,14 +1189,14 @@ async function logout() {
       localStorage.removeItem("authToken");
       // Establecer el token como nulo
       authToken = null;
-      console.log("Cierre de sesión exitoso.");
+      
       // Redirigir a la página de inicio de sesión
       window.location.href = "index.html";
     } catch (error) {
       console.error("Error al realizar la solicitud:", error);
     }
   } else {
-    console.log("No hay sesión activa para cerrar.");
+    
   }
 }
 
@@ -1080,7 +1221,7 @@ async function checkSession(sessionId) {
     if (response.ok) {
       const data = await response.json();
       if (data.result) {
-        console.log("Sesión válida:", data.result);
+        
         return true;
       } else {
         console.error("Sesión no válida.");
@@ -1164,7 +1305,7 @@ async function obtenerProxyDisponible() {
       const proxiesDisponibles = data.result.filter(
         (proxy) => proxy.proxyid !== "10426"
       );
-      console.log("Proxies disponibles:", proxiesDisponibles);
+      
       if (proxiesDisponibles.length === 0) {
         console.error("No hay proxies disponibles que no sean el proxy 6.");
         return null;
@@ -1303,12 +1444,12 @@ async function buscarItemIdsYKeysPorNombre() {
           itemid: item.itemid,
           key: item.key_,
         }));
-        console.log("Elementos con keys específicas:", itemDetails);
+        
 
         // Llama a la función obtenerDatosHistoricos con itemIds
         obtenerDatosHistoricos(itemDetails);
       } else {
-        console.log("No se encontraron elementos con las keys específicas.");
+        
       }
     }
   } catch (error) {
