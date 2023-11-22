@@ -797,10 +797,7 @@ async function login() {
 function handleBeforeUnload(event) {
   // Si hay una sesión activa, mostrar el mensaje de advertencia
   if (authToken) {
-    const message =
-      "¡Atención! Estás a punto de cerrar la pestaña sin cerrar sesión. ¿Seguro que quieres salir?";
     event.returnValue = message; // Para navegadores más antiguos
-    return message;
   }
 }
 
