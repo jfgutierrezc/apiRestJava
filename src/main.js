@@ -739,8 +739,45 @@ async function login() {
         console.log("Inicio de sesión exitoso.");
         console.log("Token de autenticación:", authToken);
 
-        // Redirigir a la página principal después del inicio de sesión
-        window.location.href = "main.html";
+        // Verificar los grupos y redirigir según el resultado
+        const responseGroups = await fetch(authURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "user.get",
+            params: {
+              output: ["userid", "alias", "usrgrps"],
+              selectUsrgrps: ["usrgrpid", "name"],
+            },
+            auth: authToken,
+            id: 1,
+          }),
+        });
+
+        if (responseGroups.ok) {
+          const userData = await responseGroups.json();
+          const userGroups = userData.result[0]?.usrgrps || [];
+          console.log("Grupos del usuario:", userGroups);
+
+          // Verificar si el usuario pertenece al grupo con ID 14
+          const perteneceAlGrupo14 = userGroups.some(group => group.usrgrpid === "14");
+
+          if (perteneceAlGrupo14) {
+            console.log("Usuario pertenece al grupo con ID 14");
+            // Realizar la redirección a la interfaz "formMacroGraph.html"
+            window.location.href = "formMacroGraph.html";
+          } else {
+            console.log("Usuario NO pertenece al grupo con ID 14");
+            // Redirigir a la página principal "main.html"
+            window.location.href = "main.html";
+          }
+        } else {
+          console.error("Error al obtener información del usuario:", responseGroups.statusText);
+        }
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
@@ -753,6 +790,7 @@ async function login() {
     console.error("Error al realizar la solicitud:", error);
   }
 }
+
 
 
 // Función para manejar el evento beforeunload
