@@ -762,18 +762,29 @@ async function login() {
           const userData = await responseGroups.json();
           const userGroups = userData.result[0]?.usrgrps || [];
           console.log("Grupos del usuario:", userGroups);
-
-          // Verificar si el usuario pertenece al grupo con ID 14
-          const perteneceAlGrupo14 = userGroups.some(group => group.usrgrpid === "14");
-
-          if (perteneceAlGrupo14) {
-            console.log("Usuario pertenece al grupo con ID 14");
+        
+          // Verificar si el usuario pertenece a alguno de los grupos del primer conjunto
+          const primerConjuntoIds = ["37", "23", "31", "36", "14"];
+          const perteneceAAlgunGrupoPrimerConjunto = userGroups.some(group => primerConjuntoIds.includes(group.usrgrpid));
+        
+          if (perteneceAAlgunGrupoPrimerConjunto) {
+            console.log("Usuario pertenece a uno de los grupos del primer conjunto");
             // Realizar la redirección a la interfaz "formMacroGraph.html"
             window.location.href = "formMacroGraph.html";
           } else {
-            console.log("Usuario NO pertenece al grupo con ID 14");
-            // Redirigir a la página principal "main.html"
-            window.location.href = "main.html";
+            // Si no pertenece al primer conjunto, verificar el segundo conjunto
+            const segundoConjuntoIds = ["25", "50", "26", "7" ];
+            const perteneceAAlgunGrupoSegundoConjunto = userGroups.some(group => segundoConjuntoIds.includes(group.usrgrpid));
+        
+            if (perteneceAAlgunGrupoSegundoConjunto) {
+              console.log("Usuario pertenece a uno de los grupos del segundo conjunto");
+              // Realizar la redirección a la interfaz correspondiente
+              window.location.href = "main.html";
+            } else {
+              console.log("Usuario NO pertenece a ninguno de los grupos especificados");
+              // Redirigir a la página principal "main.html"
+              //window.location.href = "main.html";
+            }
           }
         } else {
           console.error("Error al obtener información del usuario:", responseGroups.statusText);
@@ -798,6 +809,7 @@ function handleBeforeUnload(event) {
   // Si hay una sesión activa, mostrar el mensaje de advertencia
   if (authToken) {
     event.returnValue = message; // Para navegadores más antiguos
+
   }
 }
 
