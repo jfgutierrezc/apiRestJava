@@ -37,7 +37,7 @@ let selectedMacro = "";
 let selectedTiempo = "";
 let macroIds = "";
 let myChart = null;
-
+//prueba
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
   const storedToken = localStorage.getItem("authToken");
