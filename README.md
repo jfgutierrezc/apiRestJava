@@ -29,7 +29,7 @@ Antes de ejecutar el proyecto, asegúrese de tener lo siguiente:
 - Explore el gráfico de líneas dinámico que visualiza datos históricos para "Bits recibidos" y "Bits enviados".
 
 **Cerrar Sesión:**
--Haga clic en el botón "Cerrar Sesión" para finalizar la sesión.
+- Haga clic en el botón "Cerrar Sesión" para finalizar la sesión.
 
 ## Funcionalidades Detalladas
 **Función guardarLatitudLongitud()**
@@ -76,7 +76,7 @@ La función convertirDatosHistoricos() realiza conversiones necesarias en los da
 Esta función utiliza Chart.js para graficar datos históricos en un gráfico de líneas. La función maneja tanto la creación inicial como las actualizaciones del gráfico.
 
 ## Dependencias
-Chart.js: Una biblioteca de gráficos en JavaScript para crear gráficos interactivos.
+**Chart.js:** Una biblioteca de gráficos en JavaScript para crear gráficos interactivos.
 
 ## Licencia
 Este proyecto está bajo la Licencia MIT.
