@@ -1591,6 +1591,15 @@ function graficarDatosHistoricos(datos) {
     tituloTiempo.style.marginTop = "1px";
     document.getElementById("myChart").after(tituloTiempo);
   }
+
+  // Añade el botón solo si myChart está definido
+  if (myChart) {
+    const refreshButton = document.getElementById("refreshButton");
+    refreshButton.style.display = "block"; // Muestra el botón
+    refreshButton.addEventListener("click", function () {
+      graficarDatosHistoricos(datos);
+    });
+  }
   const cuadriculaX = document.createElement("hr");
   cuadriculaX.style.border = "none";
   cuadriculaX.style.borderTop = "1px dashed white";
@@ -1612,4 +1621,9 @@ function graficarDatosHistoricos(datos) {
   cuadriculaY.style.border = "1px dashed white";
   contenedorGrafico.appendChild(cuadriculaX);
   contenedorGrafico.appendChild(cuadriculaY);
+
+  
 }
+
+// Oculta el botón inicialmente (puedes hacerlo en tu HTML o en tu script)
+document.getElementById("refreshButton").style.display = "none";
