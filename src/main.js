@@ -37,7 +37,7 @@ let selectedMacro = "";
 let selectedTiempo = "";
 let macroIds = "";
 let myChart = null;
-//prueba
+
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
   const storedToken = localStorage.getItem("authToken");
@@ -1048,7 +1048,7 @@ function guardarTemplateId() {
 
 // Función para realizar el inicio de sesión
 async function login() {
-  event.preventDefault();
+  event.preventDefault(); // Evita que el formulario se envíe automáticamente
 
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
@@ -1080,8 +1080,59 @@ async function login() {
         // Almacenar el token en el almacenamiento local
         localStorage.setItem("authToken", authToken);
 
-        // Redirigir a la página principal después del inicio de sesión
-        window.location.href = "main.html";
+        console.log("Inicio de sesión exitoso.");
+        console.log("Token de autenticación:", authToken);
+
+        // Verificar los grupos y redirigir según el resultado
+        const responseGroups = await fetch(authURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "user.get",
+            params: {
+              output: ["userid", "alias", "usrgrps"],
+              selectUsrgrps: ["usrgrpid", "name"],
+            },
+            auth: authToken,
+            id: 1,
+          }),
+        });
+
+        if (responseGroups.ok) {
+          const userData = await responseGroups.json();
+          const userGroups = userData.result[0]?.usrgrps || [];
+          console.log("Grupos del usuario:", userGroups);
+        
+          // Verificar si el usuario pertenece a alguno de los grupos del primer conjunto
+          const primerConjuntoIds = ["37", "23", "31", "36", "14"];
+          const perteneceAAlgunGrupoPrimerConjunto = userGroups.some(group => primerConjuntoIds.includes(group.usrgrpid));
+        
+          if (perteneceAAlgunGrupoPrimerConjunto) {
+            console.log("Usuario pertenece a uno de los grupos del primer conjunto");
+            // Realizar la redirección a la interfaz "formMacroGraph.html"
+            window.location.href = "formMacroGraph.html";
+          } else {
+            // Si no pertenece al primer conjunto, verificar el segundo conjunto
+            const segundoConjuntoIds = ["25", "50", "26", "7" ];
+            const perteneceAAlgunGrupoSegundoConjunto = userGroups.some(group => segundoConjuntoIds.includes(group.usrgrpid));
+        
+            if (perteneceAAlgunGrupoSegundoConjunto) {
+              console.log("Usuario pertenece a uno de los grupos del segundo conjunto");
+              // Realizar la redirección a la interfaz correspondiente
+              window.location.href = "main.html";
+            } else {
+              console.log("Usuario NO pertenece a ninguno de los grupos especificados");
+              // Redirigir a la página principal "main.html"
+              //window.location.href = "main.html";
+            }
+          }
+        } else {
+          console.error("Error al obtener información del usuario:", responseGroups.statusText);
+        }
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
         alert("Usuario o contraseña incorrecta.");
@@ -1094,6 +1145,7 @@ async function login() {
     console.error("Error al realizar la solicitud:", error);
   }
 }
+
 
 // Función para cerrar sesión
 async function logout() {
