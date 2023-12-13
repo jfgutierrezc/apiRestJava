@@ -602,7 +602,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               // Obtener información de la tarea utilizando taskid
               await obtenerInformacionTarea(taskId);
-              alert("Discovery rule exitosamente.");
+              alert("Discovery rule ejecutada exitosamente.");
             } else {
               console.error(
                 "No se encontró la discovery rule asociada al host"
