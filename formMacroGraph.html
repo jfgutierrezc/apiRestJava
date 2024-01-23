@@ -12,10 +12,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script> 
-  </head>
-
+    
+  </head> 
   <body class="bg-gray-950">
-
 
     <div class="min-h-screen flex justify-left items-center p-4">
       <form
@@ -26,7 +25,10 @@
           class="w-2/3 mx-auto mt-2 md:mt-0 md:w-3/4"
           src="src/logo-form.svg"
           alt="logo"
-        />
+        />      
+
+
+
 
         <datalist id="sugerenciasHost"></datalist>
 
@@ -45,12 +47,12 @@
               type="text"              
               placeholder="Host"
               list="hostSuggestions"
-              required
+              
             />
           </div>
           <div> 
             <button
-              class="shadow bg-orange-500 hover:bg-orange-700 focus:shadow-outline focus:outline-none text-white font-bold py-0 px-1 rounded mt-3"
+              class="shadow bg-orange-500 hover:bg-orange-700 focus:shadow-outline focus:outline-none text-white font-bold  rounded mt-3 "
               id="botonExecuteNow"
               >
               Execute Now
@@ -74,10 +76,10 @@
               <select
                 class="block appearance-none w-full bg-gray-200 border border focus:border-sky-400 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 id="itemInterface"
-                required
+                
               >
                 <option value="" disabled selected>
-                  Seleccione el item
+                  Seleccione un ítem
                 </option>
               </select>
             </div>
@@ -100,7 +102,7 @@
               pattern="^[0-9]+"
               type="number"
               placeholder="Valor"
-              required
+              
             />
           </div>
         </div>
@@ -150,10 +152,42 @@
       <!-- Canvas -->
       <div class="w-full md:w-3/4 p-4">
         <canvas id="myChart" class="w-full h-96"></canvas>
+      </div>   
+      
+      <div class="min-h-screen p-0">
+        <button
+          style="background-image: url('https://cdn.icon-icons.com/icons2/4035/PNG/512/arrow_rotate_reload_refresh_icon_256470.png'); background-size: contain; background-position: right; background-repeat: no-repeat;"
+          class="ml-auto shadow bg-gray-100 hover:bg-gray-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+          id="botonRecargarImg"
+        >
+          &nbsp;
+        </button>
       </div>
+
     </div>
   </body>
 
   <script src="./src/main.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
+
+
+
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.27.0/slimselect.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.27.0/slimselect.min.js"></script>
+  <select id="itemInterface"></select>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      new SlimSelect({
+        select: '#itemInterface',
+        /* opciones */
+      });
+    });
+  </script>
+  
+  
+
+
+
+
 </html>
