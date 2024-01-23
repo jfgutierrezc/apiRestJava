@@ -71,10 +71,8 @@
               ITEM
             </label>
             <div class="relative">
-              <select
-                class="block appearance-none w-full bg-gray-200 border border focus:border-sky-400 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="itemInterface"
-                
+              <select                
+                id="itemInterface"                
               >
                 <option value="" disabled selected>
                   Seleccione un ítem
@@ -172,4 +170,18 @@
 
   <script src="./src/main.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.27.0/slimselect.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.27.0/slimselect.min.js"></script>
+  <select id="itemInterface"></select>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      new SlimSelect({
+        select: '#itemInterface',
+        /* opciones */
+      });
+    });
+  </script>
+
+  
 </html>
