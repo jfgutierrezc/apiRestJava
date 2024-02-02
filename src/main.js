@@ -112,7 +112,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (proxyDisponible) {
           guardarTemplateId();
-          
 
           const hostName = selectHost.value;
           const ipAddres = selectIp.value;
@@ -311,7 +310,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           jsonrpc: "2.0",
           method: "host.get",
           params: {
-            output: ["hostid"],
+            output: ["hostid", "proxy_hostid"],
             filter: {
               host: [nombreHost],
             },
@@ -330,7 +329,44 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await response.json();
       if (data.result && data.result.length > 0) {
         // Devuelve el hostid del primer resultado (asumiendo que no hay duplicados)
+
         return data.result[0].hostid;
+      } else {
+        throw new Error("No se encontró el host con el nombre:", nombreHost);
+      }
+    };
+
+    const obtenerProxyHostId = async (nombreHost) => {
+      const response = await fetch(authURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "host.get",
+          params: {
+            output: ["proxy_hostid"],
+            filter: {
+              host: [nombreHost],
+            },
+          },
+          auth: authToken,
+          id: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al obtener el host por nombre: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      if (data.result && data.result.length > 0) {
+        // Devuelve el hostid del primer resultado (asumiendo que no hay duplicados)
+
+        return data.result[0].proxy_hostid;
       } else {
         throw new Error("No se encontró el host con el nombre:", nombreHost);
       }
@@ -338,6 +374,149 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Lista global para almacenar todas las hostmacroids
     let listaHostMacroids = [];
+
+    // Función para modificar el proxy_hostid según las reglas especificadas
+    function modificarProxyHostId(proxy_hostid) {
+      switch (proxy_hostid) {
+        case 10316:
+          return 10317;
+        case 10421:
+          return 10420;
+        case 10422:
+          return 10423;
+        case 10424:
+          return 10429;
+        case 10425:
+          return 10430;
+        case 10426:
+          return 10431;
+        case 10427:
+          return 10432;
+        case 10428:
+          return 10433;
+        // Agregar más casos según sea necesario
+        default:
+          return proxy_hostid;
+      }
+    }
+
+    // Función para utilizar el nuevo valor en otra función o almacenarlo
+    async function otraFuncionConNuevoValor(nuevoProxyHostId) {
+      // Hacer lo que necesites con el nuevo valor
+
+      // Llamada al método script.execute con el nuevo valor de proxy_hostid
+      try {
+        const scriptExecuteRequest = {
+          jsonrpc: "2.0",
+          method: "script.execute",
+          params: {
+            scriptid: "4",
+            hostid: nuevoProxyHostId,
+          },
+          auth: "9ba1e59db9f78b97ebcc8a28a72c1935",
+          id: 1,
+        };
+
+        const scriptExecuteResponse = await fetch(authURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(scriptExecuteRequest),
+        });
+
+        if (!scriptExecuteResponse.ok) {
+          throw new Error(
+            "Error al ejecutar el método script.execute: " +
+              scriptExecuteResponse.statusText
+          );
+        }
+
+        const scriptExecuteData = await scriptExecuteResponse.json();
+      } catch (error) {}
+    }
+
+    // Función para buscar y eliminar macros con "$DELAY_IF:"
+    async function buscarYEliminarDelayMacros(hostName) {
+      
+      const hostId = await obtenerHostIdPorNombre(hostName);
+
+      const macrosResponse = await fetch(authURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "usermacro.get",
+          params: {
+            hostids: hostId,
+          },
+          auth: authToken,
+          id: 3,
+        }),
+      });
+
+      if (!macrosResponse.ok) {
+        console.error(
+          "Error al obtener la información de las macros:",
+          macrosResponse.statusText
+        );
+        throw new Error(
+          "Error al obtener la información de las macros: " +
+            macrosResponse.statusText
+        );
+      }
+
+      const macrosData = await macrosResponse.json();
+      
+      const delayMacros = macrosData.result.filter((macro) => {
+        
+        return macro.macro.includes('{$DELAY_IF:"');
+      });
+
+      if (delayMacros.length > 0) {
+      
+
+        for (const delayMacro of delayMacros) {
+         
+
+          const eliminarMacroRequest = {
+            jsonrpc: "2.0",
+            method: "usermacro.delete",
+            params: [delayMacro.hostmacroid],
+            auth: authToken,
+            id: 4,
+          };
+
+          try {
+            const response = await fetch(authURL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(eliminarMacroRequest),
+            });
+
+            if (!response.ok) {
+              console.error(
+                "Error al eliminar la macro '$DELAY_IF:':",
+                response.statusText
+              );
+              throw new Error("Error al eliminar la macro '$DELAY_IF:'");
+            }
+
+            const data = await response.json();
+           
+          } catch (error) {
+            console.error("Error al eliminar la macro '$DELAY_IF:':", error);
+          }
+        }
+      } else {
+       
+      }
+    }
+
     // Agregar un evento para el botón de actualizar
     if (btnActualizar) {
       btnActualizar.addEventListener("click", async function () {
@@ -352,6 +531,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const hostId = await obtenerHostIdPorNombre(hostSelected);
+        const proxy_hostid = await obtenerProxyHostId(hostSelected);
 
         if (hostId) {
           const createMacroRequest = {
@@ -360,7 +540,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             params: {
               hostid: hostId,
               macro: `{$DELAY_IF:"${selectedItem}"}`,
-              value: tiempoValue + "m",
+              value: tiempoValue + "s",
             },
             auth: authToken,
             id: 1,
@@ -421,6 +601,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 // Obtener información de la tarea utilizando taskid
                 await obtenerInformacionTarea(taskId);
+
+                 // Modificar el proxy_hostid según las reglas especificadas
+              let nuevoProxyHostId = modificarProxyHostId(Number(proxy_hostid));
+
+              // Llamada al método script.execute con el nuevo valor de proxy_hostid
+              await otraFuncionConNuevoValor(nuevoProxyHostId);
+
               } else {
                 console.error(
                   "No se encontró la discovery rule asociada al host"
@@ -556,6 +743,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Obtener el hostid a partir del nombre del host
         const hostId = await obtenerHostIdPorNombre(hostSelected);
+        const proxy_hostid = await obtenerProxyHostId(hostSelected);
 
         if (hostId) {
           try {
@@ -602,7 +790,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               // Obtener información de la tarea utilizando taskid
               await obtenerInformacionTarea(taskId);
+
+              // Modificar el proxy_hostid según las reglas especificadas
+              let nuevoProxyHostId = modificarProxyHostId(Number(proxy_hostid));
+
+              // Llamada al método script.execute con el nuevo valor de proxy_hostid
+              await otraFuncionConNuevoValor(nuevoProxyHostId);
+
               alert("Discovery rule ejecutada exitosamente.");
+              formMacro.reset();
             } else {
               console.error(
                 "No se encontró la discovery rule asociada al host"
@@ -737,7 +933,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           // Limpiar la lista después de eliminar los macroids
           listaHostMacroids = [];
 
-          alert("Las macros  han sido eliminados correctamente");
+          alert("La macro  ha sido eliminado correctamente");
         } else {
         }
 
@@ -749,7 +945,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const hostId = await obtenerHostIdPorNombre(hostSelected);
+        const proxy_hostid = await obtenerProxyHostId(hostSelected);
 
+        // Llamada a la función para buscar y eliminar macros con "$DELAY_IF:"
+        await buscarYEliminarDelayMacros(hostSelected);
         if (hostId) {
           try {
             const discoveryRuleResponse = await fetch(authURL, {
@@ -791,6 +990,12 @@ document.addEventListener("DOMContentLoaded", async () => {
               );
 
               await obtenerInformacionTarea(taskId);
+               // Modificar el proxy_hostid según las reglas especificadas
+               let nuevoProxyHostId = modificarProxyHostId(Number(proxy_hostid));
+
+               // Llamada al método script.execute con el nuevo valor de proxy_hostid
+               await otraFuncionConNuevoValor(nuevoProxyHostId);
+               alert("La macro  ha sido eliminado correctamente");
             } else {
               console.error(
                 "No se encontró la discovery rule asociada al host"
@@ -803,7 +1008,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
           }
         }
-
 
         async function crearTareaYObtenerTaskId(discoveryRuleItemId) {
           const createTaskRequest = {
@@ -1081,15 +1285,11 @@ async function login() {
         // Almacenar el token en el almacenamiento local
         localStorage.setItem("authToken", authToken);
 
-        console.log("Inicio de sesión exitoso.");
-        console.log("Token de autenticación:", authToken);
-
         // Verificar los grupos y redirigir según el resultado
         const responseGroups = await fetch(authURL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            
           },
           body: JSON.stringify({
             jsonrpc: "2.0",
@@ -1106,33 +1306,39 @@ async function login() {
         if (responseGroups.ok) {
           const userData = await responseGroups.json();
           const userGroups = userData.result[0]?.usrgrps || [];
-          console.log("Grupos del usuario:", userGroups);
-        
+
           // Verificar si el usuario pertenece a alguno de los grupos del primer conjunto
           const primerConjuntoIds = ["37", "23", "31", "36", "14"];
-          const perteneceAAlgunGrupoPrimerConjunto = userGroups.some(group => primerConjuntoIds.includes(group.usrgrpid));
-        
+          const perteneceAAlgunGrupoPrimerConjunto = userGroups.some((group) =>
+            primerConjuntoIds.includes(group.usrgrpid)
+          );
+
           if (perteneceAAlgunGrupoPrimerConjunto) {
-            console.log("Usuario pertenece a uno de los grupos del primer conjunto");
+            
             // Realizar la redirección a la interfaz "formMacroGraph.html"
             window.location.href = "formMacroGraph.html";
           } else {
             // Si no pertenece al primer conjunto, verificar el segundo conjunto
-            const segundoConjuntoIds = ["25", "50", "26", "7" ];
-            const perteneceAAlgunGrupoSegundoConjunto = userGroups.some(group => segundoConjuntoIds.includes(group.usrgrpid));
-        
+            const segundoConjuntoIds = ["25", "50", "26", "7"];
+            const perteneceAAlgunGrupoSegundoConjunto = userGroups.some(
+              (group) => segundoConjuntoIds.includes(group.usrgrpid)
+            );
+
             if (perteneceAAlgunGrupoSegundoConjunto) {
-              console.log("Usuario pertenece a uno de los grupos del segundo conjunto");
+             
               // Realizar la redirección a la interfaz correspondiente
               window.location.href = "main.html";
             } else {
-              console.log("Usuario NO pertenece a ninguno de los grupos especificados");
+              
               // Redirigir a la página principal "main.html"
               //window.location.href = "main.html";
             }
           }
         } else {
-          console.error("Error al obtener información del usuario:", responseGroups.statusText);
+          console.error(
+            "Error al obtener información del usuario:",
+            responseGroups.statusText
+          );
         }
       } else {
         // Mostrar una alerta de usuario o contraseña incorrecta
@@ -1146,7 +1352,6 @@ async function login() {
     console.error("Error al realizar la solicitud:", error);
   }
 }
-
 
 // Función para cerrar sesión
 async function logout() {
@@ -1451,7 +1656,7 @@ async function obtenerDatosHistoricos(itemDetails) {
         itemids: item.itemid,
         sortfield: "clock",
         sortorder: "DESC",
-        limit: 60,
+        limit: 30,
       },
       auth: authToken,
       id: 2,
@@ -1512,7 +1717,11 @@ function graficarDatosHistoricos(datos) {
       y: value.mbps,
     })),
     borderColor: colores[index % colores.length],
-    backgroundColor: colores[index % colores.length],
+    backgroundColor: colores[index % colores.length].replace('1)', '0.5)'),
+    pointRadius: 1.5, // Ajusta el tamaño de los puntos
+    pointHoverRadius: 4,
+    borderWidth: 2,
+    fill: true,
   }));
 
   const ctx = document.getElementById("myChart").getContext("2d");
@@ -1578,7 +1787,8 @@ function graficarDatosHistoricos(datos) {
     });
 
     const tituloEncima = document.createElement("div");
-    tituloEncima.textContent = "Grafico comparativo de Bits Received vs Bits Sent";
+    tituloEncima.textContent =
+      "Grafico comparativo de Bits Received vs Bits Sent";
     tituloEncima.style.textAlign = "center";
     tituloEncima.style.color = "White";
     tituloEncima.style.fontSize = "20px";
@@ -1597,6 +1807,8 @@ function graficarDatosHistoricos(datos) {
     const refreshButton = document.getElementById("refreshButton");
     refreshButton.style.display = "block"; // Muestra el botón
     refreshButton.addEventListener("click", function () {
+      obtenerDatosHistoricos(datos);
+      convertirDatosHistoricos(datos);
       graficarDatosHistoricos(datos);
     });
   }
@@ -1621,8 +1833,6 @@ function graficarDatosHistoricos(datos) {
   cuadriculaY.style.border = "1px dashed white";
   contenedorGrafico.appendChild(cuadriculaX);
   contenedorGrafico.appendChild(cuadriculaY);
-
-  
 }
 
 // Oculta el botón inicialmente (puedes hacerlo en tu HTML o en tu script)
