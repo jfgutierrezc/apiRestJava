@@ -37,6 +37,8 @@ let selectedMacro = "";
 let selectedTiempo = "";
 let macroIds = "";
 let myChart = null;
+let itemDetails = [];
+
 
 // Agrega el evento que se ejecutará cuando el contenido de la página haya cargado
 document.addEventListener("DOMContentLoaded", async () => {
@@ -525,10 +527,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         const hostSelected = selectedHost;
         const tiempoValue = itemTiempo.value;
 
-        if (!hostSelected || !selectedItem || isNaN(parseFloat(tiempoValue))) {
+        if (!hostSelected || !selectedItem || !tiempoValue) {
           alert("Por favor, complete los datos correctamente.");
           return;
         }
+
+           // Validar que el tiempo sea mayor o igual a 10
+    if (isNaN(parseFloat(tiempoValue)) || parseFloat(tiempoValue) < 10) {
+      alert("El valor del tiempo debe ser mayor o igual a 10.");
+      return;
+    }
 
         const hostId = await obtenerHostIdPorNombre(hostSelected);
         const proxy_hostid = await obtenerProxyHostId(hostSelected);
@@ -558,7 +566,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (response.ok) {
               const data = await response.json();
 
-              // Obtener la discovery rule asociada al host
               const discoveryRuleResponse = await fetch(authURL, {
                 method: "POST",
                 headers: {
@@ -628,7 +635,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               alert("Macro creada exitosamente.");
 
-              formMacro.reset();
+              //formMacro.reset();
               selectElemento.innerHTML = "";
               // Deshabilitar la opción predeterminada
               selectElemento.appendChild(
@@ -798,7 +805,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               await otraFuncionConNuevoValor(nuevoProxyHostId);
 
               alert("Discovery rule ejecutada exitosamente.");
-              formMacro.reset();
+              //formMacro.reset();
             } else {
               console.error(
                 "No se encontró la discovery rule asociada al host"
@@ -1582,11 +1589,12 @@ async function llenarListaDesplegable() {
   selectElemento.querySelector('option[value=""]').disabled = true;
 }
 
+
 // Función para buscar "item id" y "keys_" por nombre de item y filtrar por "keys_" específicas
 async function buscarItemIdsYKeysPorNombre() {
   try {
     const selectedItemName = document.getElementById("itemInterface").value;
-
+    
     // Verifica si se seleccionó un nombre de item
     if (selectedItemName) {
       const jsonRpcRequest = {
@@ -1642,9 +1650,11 @@ const nombresDeItems = {
   itemid2: "Bits received",
 };
 
+
 // Función para obtener datos históricos de Zabbix utilizando history.get
 async function obtenerDatosHistoricos(itemDetails) {
-  const datosHistoricos = [];
+  
+  let datosHistoricos = [];
 
   for (const item of itemDetails) {
     const jsonRpcRequest = {
@@ -1672,19 +1682,23 @@ async function obtenerDatosHistoricos(itemDetails) {
 
     const data = await response.json();
 
-    const datosConvertidos = convertirDatosHistoricos(data.result);
+    if (data.result) {
+      const datosConvertidos = convertirDatosHistoricos(data.result);
 
-    let etiqueta = selectedItem;
-    if (item.key_ === "net.if.out[ifHCOutOctets") {
-      etiqueta += " - Bits sent";
-    } else if (item.key_ === "net.if.in[ifHCInOctets") {
-      etiqueta += " - Bits received";
+      let etiqueta = selectedItem;
+      if (item.key_ === "net.if.out[ifHCOutOctets") {
+        etiqueta += " - Bits sent";
+      } else if (item.key_ === "net.if.in[ifHCInOctets") {
+        etiqueta += " - Bits received";
+      }
+
+      datosHistoricos.push({
+        key: etiqueta,
+        values: datosConvertidos,
+      });
+    } else {
+      console.error("Los datos históricos no están definidos en la respuesta.");
     }
-
-    datosHistoricos.push({
-      key: etiqueta,
-      values: datosConvertidos,
-    });
   }
 
   graficarDatosHistoricos(datosHistoricos);
@@ -1692,15 +1706,19 @@ async function obtenerDatosHistoricos(itemDetails) {
 
 // Función para convertir datos históricos
 function convertirDatosHistoricos(datos) {
-  // Mapea los datos y realiza las conversiones necesarias
+
+  
   return datos.map((dato) => ({
-    timestamp: new Date(dato.clock * 1000), // Convierte el "clock" a timestamp
-    mbps: dato.value / 1000000, // Convierte "value" de kbps a Mbps
+    timestamp: new Date(dato.clock * 1000), 
+    mbps: dato.value / 1000000, 
   }));
 }
 
+
 // Función para graficar datos históricos
 function graficarDatosHistoricos(datos) {
+ 
+
   const colores = [
     "rgba(75, 192, 192, 1)",
     "rgba(192, 75, 75, 1)",
@@ -1718,7 +1736,7 @@ function graficarDatosHistoricos(datos) {
     })),
     borderColor: colores[index % colores.length],
     backgroundColor: colores[index % colores.length].replace('1)', '0.5)'),
-    pointRadius: 1.5, // Ajusta el tamaño de los puntos
+    pointRadius: 1.5, 
     pointHoverRadius: 4,
     borderWidth: 2,
     fill: true,
@@ -1727,7 +1745,7 @@ function graficarDatosHistoricos(datos) {
   const ctx = document.getElementById("myChart").getContext("2d");
 
   if (myChart) {
-    // Si ya existe una instancia de Chart, actualiza los datos en lugar de crear una nueva.
+   
     myChart.data.datasets = datasets;
     myChart.options.plugins.title.text = "Tipo de datos en el eje X";
     myChart.update();
@@ -1802,16 +1820,27 @@ function graficarDatosHistoricos(datos) {
     document.getElementById("myChart").after(tituloTiempo);
   }
 
-  // Añade el botón solo si myChart está definido
   if (myChart) {
     const refreshButton = document.getElementById("refreshButton");
     refreshButton.style.display = "block"; // Muestra el botón
-    refreshButton.addEventListener("click", function () {
-      obtenerDatosHistoricos(datos);
-      convertirDatosHistoricos(datos);
-      graficarDatosHistoricos(datos);
+    refreshButton.addEventListener("click", async function () {      
+      try {
+       
+        await buscarItemIdsYKeysPorNombre();
+  
+    
+        await obtenerDatosHistoricos(itemDetails);
+
+        convertirDatosHistoricos(datos);
+        graficarDatosHistoricos(datos);
+  
+      } catch (error) {
+        console.error("Error al refrescar el gráfico:", error);
+      }
     });
   }
+
+  
   const cuadriculaX = document.createElement("hr");
   cuadriculaX.style.border = "none";
   cuadriculaX.style.borderTop = "1px dashed white";
@@ -1834,6 +1863,7 @@ function graficarDatosHistoricos(datos) {
   contenedorGrafico.appendChild(cuadriculaX);
   contenedorGrafico.appendChild(cuadriculaY);
 }
+
 
 // Oculta el botón inicialmente (puedes hacerlo en tu HTML o en tu script)
 document.getElementById("refreshButton").style.display = "none";
